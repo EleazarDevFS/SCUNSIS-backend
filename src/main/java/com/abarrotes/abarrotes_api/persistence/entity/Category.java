@@ -6,19 +6,25 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 @Entity
 @Data
-@Table(name = "client")
+@Table(name = "category")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Client {
+public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "client_id", nullable = false)
+    @Column(name = "category_id", nullable = false)
     private Long id;
+    @Column(length = 50)
+    private String description;
+    @Column(nullable = false)
+    private boolean status;
+    // === OneToMany with Product ===
     @OneToMany
-    private List<Sales> sales;
+    private List<Product> products;
 }
