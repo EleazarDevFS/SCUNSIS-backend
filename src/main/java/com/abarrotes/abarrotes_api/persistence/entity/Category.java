@@ -25,6 +25,6 @@ public class Category {
     @Column(nullable = false)
     private boolean status;
     // === OneToMany with Product ===
-    @OneToMany
+    @OneToMany(mappedBy = "category")
     private List<Product> products;
 }

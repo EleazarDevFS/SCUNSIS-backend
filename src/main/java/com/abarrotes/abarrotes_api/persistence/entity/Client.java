@@ -19,6 +19,6 @@ public class Client {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "client_id", nullable = false)
     private Long id;
-    @OneToMany
-    private List<Sales> sales;
+    @OneToMany(mappedBy = "client")
+    private List<Sale> sales;
 }
