@@ -1,5 +1,10 @@
 package com.unsis.scunsis_backend.model.receiver;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.unsis.scunsis_backend.model.proof.Proof;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,4 +40,8 @@ public class Receiver {
 
     @Column(name = "grado_academico", length = 30)
     private String academicGrade;
+
+    @OneToMany(mappedBy = "receiver")
+    @Builder.Default
+    private List<Proof> proofs = new ArrayList<>();
 }

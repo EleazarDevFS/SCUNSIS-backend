@@ -1,8 +1,12 @@
 package com.unsis.scunsis_backend.model.event;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.unsis.scunsis_backend.model.enums.EEventType;
+import com.unsis.scunsis_backend.model.proof.Proof;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,5 +44,11 @@ public class Event {
 
     @Column(name = "objetivo_evento")
     private String eventDescription;
+
+
+    @OneToMany(mappedBy = "event")
+    @Builder.Default
+    private List<Proof> proofs = new ArrayList<>();
+
 
 }

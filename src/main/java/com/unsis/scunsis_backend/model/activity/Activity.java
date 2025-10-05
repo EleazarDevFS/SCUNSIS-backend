@@ -1,6 +1,11 @@
 package com.unsis.scunsis_backend.model.activity;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.unsis.scunsis_backend.model.event.Event;
+import com.unsis.scunsis_backend.model.proof.Proof;
 
 import jakarta.persistence.*;
 
@@ -22,9 +27,9 @@ public class Activity {
     @Column(name = "id_actividad")
     private long activityId;
 
-    // Id de evento. hay que hacer la fk y verificar su relación con Event
-    //@ManyToOne
-    //private Event eventId;
+    @ManyToOne
+    @JoinColumn(name = "fk_evento")
+    private Event eventId;
 
     @Column(name = "nombre_actividad", length = 50, nullable = false)
     private String activityName;
@@ -40,4 +45,8 @@ public class Activity {
 
     @Column(name = "lugar_actividad", length = 200)
     private String activityPlace;
+
+    @OneToOne(mappedBy = "activity")
+    @Builder.Default
+    private List<Proof> proofs = new ArrayList<>();
 }
