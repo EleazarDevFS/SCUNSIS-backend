@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum EEventType {
-    FISICO("físico"),
-    VIRTUAL("virtual");
+    FISICO("Físico"),
+    VIRTUAL("Virtual");
     private String value;
 }
