@@ -22,6 +22,14 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	// JPA Implementation
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	// Lombook implementation
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	// PostgreSQL Driver
+	runtimeOnly 'org.postgresql:postgresql'
+
 }
 
 tasks.named('test') {
