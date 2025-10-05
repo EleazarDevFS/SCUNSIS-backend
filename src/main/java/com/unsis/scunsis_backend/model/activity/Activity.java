@@ -46,7 +46,7 @@ public class Activity {
     @Column(name = "lugar_actividad", length = 200)
     private String activityPlace;
 
-    @OneToOne(mappedBy = "activity")
+    @OneToMany(mappedBy = "activity")
     @Builder.Default
     private List<Proof> proofs = new ArrayList<>();
 }
