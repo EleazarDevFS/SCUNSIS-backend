@@ -20,6 +20,7 @@ import lombok.Data;
 public class Signature {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_firma")
     private long id;
 
     @Column(name = "nombre")
