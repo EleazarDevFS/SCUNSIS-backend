@@ -47,7 +47,7 @@ public class Proof {
     @ManyToOne
     @JoinColumn(name = "fk_id_event")
     private Event event;
-
+    // Cambiar a @Enumerated(EnumType.STRING)
     @Column(name = "tipo_constancia")
     private EProofType proofType;
 
