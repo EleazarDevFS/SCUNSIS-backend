@@ -3,11 +3,13 @@ package com.unsis.scunsis_backend.mapper.event;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Component;
+
 import com.unsis.scunsis_backend.dto.request.event.EventRequest;
 import com.unsis.scunsis_backend.dto.response.event.EventResponse;
 import com.unsis.scunsis_backend.mapper.BaseMapper;
 import com.unsis.scunsis_backend.model.event.Event; 
-
+@Component
 public class EventMapper implements BaseMapper<EventResponse, EventRequest, Event>{
 
     @Override

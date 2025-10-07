@@ -9,8 +9,10 @@ import com.unsis.scunsis_backend.mapper.BaseMapper;
 import com.unsis.scunsis_backend.model.activity.Activity;
 
 import lombok.Data;
+import org.springframework.stereotype.Component;
 
 @Data
+@Component
 public class ActivityMapper implements BaseMapper<ActivityResponse, ActivityRequest, Activity> {
     
     @Override
