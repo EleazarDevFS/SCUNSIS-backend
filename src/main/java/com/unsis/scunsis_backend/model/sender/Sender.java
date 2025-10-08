@@ -11,11 +11,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
 @Table(name = "emisor")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Sender {
 
     @Id
@@ -30,6 +36,7 @@ public class Sender {
     private String campus;
 
     @OneToMany(mappedBy = "sender")
+    @Builder.Default
     private List<Proof> proofs = new ArrayList<>();
 
 }
