@@ -29,7 +29,13 @@ public class SignatureMapper implements BaseMapper<SignatureResponse, SignatureR
 
     @Override
     public SignatureResponse toDto(Signature entity) {
-        return SignatureResponse.builder().build();
+        return SignatureResponse.builder()
+        .academicGrade(entity.getAcademicGrade())
+        .lastName(entity.getLastName())
+        .name(entity.getName())
+        .position(entity.getPosition())
+        .twoLastName(entity.getTwoLastName())
+        .build();
     }
 
     @Override
