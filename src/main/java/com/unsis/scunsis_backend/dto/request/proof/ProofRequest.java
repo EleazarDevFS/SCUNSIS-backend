@@ -15,8 +15,6 @@ import lombok.Data;
 @Data
 @Builder
 public class ProofRequest {
-    
-    private String folio;
 
     private Signature signature;
 
