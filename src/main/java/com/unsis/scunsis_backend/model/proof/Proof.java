@@ -11,6 +11,8 @@ import com.unsis.scunsis_backend.model.signature.Signature;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -53,6 +55,7 @@ public class Proof {
     private Event event;
     // Cambiar a @Enumerated(EnumType.STRING)
     @Column(name = "tipo_constancia")
+    @Enumerated(EnumType.STRING)
     private EProofType proofType;
 
     @Column(name = "fecha", nullable = false)
