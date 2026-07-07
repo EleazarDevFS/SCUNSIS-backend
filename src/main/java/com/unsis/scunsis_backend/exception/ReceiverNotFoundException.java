@@ -6,7 +6,7 @@ public class ReceiverNotFoundException extends AppException {
 
     public ReceiverNotFoundException(Long receiverId) {
         super(
-                String.format(Constant.RECEIVER_NOT_FOUND, receiverId),
+                String.format(Constant.NOT_FOUND_BY_ID, receiverId),
                 HttpStatus.NOT_FOUND,
                 "RECEIVER_NOT_FOUND"
         );
