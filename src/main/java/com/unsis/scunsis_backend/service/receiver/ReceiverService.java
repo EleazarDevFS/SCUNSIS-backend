@@ -1,8 +1,9 @@
 package com.unsis.scunsis_backend.service.receiver;
 
 import java.util.List;
-import java.util.Optional;
 
+import com.unsis.scunsis_backend.constants.Constant;
+import com.unsis.scunsis_backend.exception.ReceiverNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.unsis.scunsis_backend.dto.request.receiver.ReceiverRequest;
@@ -22,9 +23,9 @@ public class ReceiverService {
     private final ReceiverMapper receiverMapper;
 
     public ReceiverResponse getById(long receiverId){
-        Optional<Receiver> receiver = receiverRepository.findById(receiverId);
-        ReceiverResponse receiverResponse = receiverMapper.toDto(receiver.get());
-        return receiverResponse;
+        return receiverRepository.findById(receiverId)
+                .map(receiverMapper::toDto)
+                .orElseThrow(() -> new ReceiverNotFoundException(receiverId));
     }
 
     public List<ReceiverResponse> getAll(){
