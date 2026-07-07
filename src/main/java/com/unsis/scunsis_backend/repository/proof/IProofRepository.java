@@ -12,7 +12,7 @@ public interface IProofRepository extends JpaRepository<Proof, String>{
     @Query("SELECT COUNT(p) FROM Proof p")
     long countAllProofs();
     
-    @Query("SELECT COUNT(p) FROM Proof p WHERE p.type = :type")
+    @Query("SELECT COUNT(p) FROM Proof p WHERE p.proofType = :type")
     long countByType(@Param("type") EProofType type);
 
 }

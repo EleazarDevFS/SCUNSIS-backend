@@ -7,7 +7,6 @@ import com.unsis.scunsis_backend.model.enums.EProofType;
 import com.unsis.scunsis_backend.model.event.Event;
 import com.unsis.scunsis_backend.model.receiver.Receiver;
 import com.unsis.scunsis_backend.model.sender.Sender;
-import com.unsis.scunsis_backend.model.signature.Signature;
 
 import lombok.Builder;
 import lombok.Data;
@@ -17,8 +16,6 @@ import lombok.Data;
 public class ProofResponse {
 
     private String folio;
-
-    private Signature signature;
 
     private Sender sender;
 
