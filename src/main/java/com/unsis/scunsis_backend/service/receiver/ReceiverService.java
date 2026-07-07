@@ -3,7 +3,8 @@ package com.unsis.scunsis_backend.service.receiver;
 import java.util.List;
 
 import com.unsis.scunsis_backend.constants.Constant;
-import com.unsis.scunsis_backend.exception.ReceiverNotFoundException;
+import com.unsis.scunsis_backend.exception.AppException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.unsis.scunsis_backend.dto.request.receiver.ReceiverRequest;
@@ -25,7 +26,7 @@ public class ReceiverService {
     public ReceiverResponse getById(long receiverId){
         return receiverRepository.findById(receiverId)
                 .map(receiverMapper::toDto)
-                .orElseThrow(() -> new ReceiverNotFoundException(receiverId));
+                .orElseThrow(() -> new AppException(Constant.NOT_FOUND_BY_ID, HttpStatus.NOT_FOUND));
     }
 
     public List<ReceiverResponse> getAll(){
@@ -35,12 +36,16 @@ public class ReceiverService {
     }
 
     public void deleteById(long receiverId){
-        // Validamos si existe
+        if(!receiverRepository.existsById(receiverId)){
+            throw new AppException(Constant.NOT_FOUND_BY_ID, HttpStatus.NOT_FOUND);
+        }
         receiverRepository.deleteById(receiverId);
     }
 
     public void createReceiver(ReceiverRequest request){
-        // Validamos los datos con jakarta o un services de validación
+        if(receiverRepository.existsByEmail(request.getEmail().trim())){
+            throw new AppException(Constant.MAIL_FOUND, HttpStatus.CONFLICT);
+        }
         receiverRepository.save(receiverMapper.toEntity(request));
     }
 
