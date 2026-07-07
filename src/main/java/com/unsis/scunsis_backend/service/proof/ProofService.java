@@ -48,7 +48,7 @@ public class ProofService {
     public void createProof(@NonNull ProofRequest request){
         String folio = this.createNewFolio(request.getProofType());
         if(proofRepository.existsById(folio)){
-            throw new RuntimeException("This proof exist in DB");
+            throw new RuntimeException("This proof already exist in the DB");
         }
         Proof proof = proofMapper.toEntity(request);
         proofRepository.save(proof);

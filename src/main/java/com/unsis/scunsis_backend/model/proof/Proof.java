@@ -7,7 +7,6 @@ import com.unsis.scunsis_backend.model.enums.EProofType;
 import com.unsis.scunsis_backend.model.event.Event;
 import com.unsis.scunsis_backend.model.receiver.Receiver;
 import com.unsis.scunsis_backend.model.sender.Sender;
-import com.unsis.scunsis_backend.model.signature.Signature;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,10 +34,6 @@ public class Proof {
     private String folio;
 
     @ManyToOne
-    @JoinColumn(name = "fk_id_firma")
-    private Signature signature;
-
-    @ManyToOne
     @JoinColumn(name = "fk_id_emisor")
     private Sender sender;
 
@@ -53,7 +48,7 @@ public class Proof {
     @ManyToOne
     @JoinColumn(name = "fk_id_event")
     private Event event;
-    // Cambiar a @Enumerated(EnumType.STRING)
+
     @Column(name = "tipo_constancia")
     @Enumerated(EnumType.STRING)
     private EProofType proofType;

@@ -24,7 +24,6 @@ public class ProofMapper implements BaseMapper<ProofResponse, ProofRequest, Proo
         .proofType(dto.getProofType())
         .receiver(dto.getReceiver())
         .sender(dto.getSender())
-        .signature(dto.getSignature())
         .build();
     }
 
@@ -38,7 +37,6 @@ public class ProofMapper implements BaseMapper<ProofResponse, ProofRequest, Proo
        .proofType(entity.getProofType())
        .receiver(entity.getReceiver())
        .sender(entity.getSender())
-       .signature(entity.getSignature())
        .build();
     }
 
