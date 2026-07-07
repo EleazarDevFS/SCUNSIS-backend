@@ -5,4 +5,6 @@ import org.springframework.stereotype.Repository;
 
 import com.unsis.scunsis_backend.model.receiver.Receiver;
 @Repository
-public interface IReceiverRepository extends JpaRepository<Receiver, Long>{}
+public interface IReceiverRepository extends JpaRepository<Receiver, Long>{
+    Boolean existsByEmail(String email);
+}
