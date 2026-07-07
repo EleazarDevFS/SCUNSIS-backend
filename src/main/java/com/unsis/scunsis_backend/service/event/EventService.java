@@ -3,6 +3,9 @@ package com.unsis.scunsis_backend.service.event;
 import java.util.List;
 import java.util.Optional;
 
+import com.unsis.scunsis_backend.constants.Constant;
+import com.unsis.scunsis_backend.exception.AppException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.unsis.scunsis_backend.dto.request.event.EventRequest;
@@ -32,12 +35,18 @@ public class EventService {
     }
 
     public EventResponse getEventById(Long eventId){
+        if(!eventRepository.existsById(eventId)){
+            throw new AppException(Constant.NOT_FOUND_BY_ID, HttpStatus.NOT_FOUND);
+        }
         Optional<Event> event = eventRepository.findById(eventId);
             EventResponse eventResponse = eventMapper.toDto(event.get());
             return eventResponse;
     }
 
     public void deleteEventById(long eventId){
+        if(!eventRepository.existsById(eventId)){
+            throw new AppException(Constant.NOT_FOUND_BY_ID, HttpStatus.NOT_FOUND);
+        }
         eventRepository.deleteById(eventId);
     }
 }

@@ -4,6 +4,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import com.unsis.scunsis_backend.constants.Constant;
+import com.unsis.scunsis_backend.exception.AppException;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +34,9 @@ public class ProofService {
     }
     
     public ProofResponse getById(@NonNull String folio){
-        // Validar si existe 
+        if(!proofRepository.existsById(folio)){
+            throw new AppException(Constant.NOT_FOUND_BY_ID, HttpStatus.NOT_FOUND);
+        }
         Optional<Proof> proof = proofRepository.findById(folio);
         ProofResponse proofResponse = proofMapper.toDto(proof.get());
         return proofResponse;
@@ -41,7 +46,7 @@ public class ProofService {
         if(proofRepository.existsById(folio)){
             proofRepository.deleteById(folio);
         }else{
-            throw new RuntimeException("This proof don't exist");
+            throw new AppException(Constant.NOT_FOUND_BY_ID, HttpStatus.NOT_FOUND);
         }
     }
 
