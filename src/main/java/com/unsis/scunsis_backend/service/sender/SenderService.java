@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.unsis.scunsis_backend.constants.Constant;
 import com.unsis.scunsis_backend.exception.AppException;
+import com.unsis.scunsis_backend.model.sender.Sender;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -39,9 +40,11 @@ public class SenderService {
         senderRepository.deleteById(senderId);
     }
 
-    public void createSender(SenderRequest request){
-        if(senderRepository.existsByName(request.getName().trim())){
-           throw new AppException(Constant.SENDER_EXISTS, HttpStatus.CONFLICT);
+    public void createSender(SenderRequest request) {
+        List<Sender> senderList = senderRepository.getSenderByName(request.getName().trim());
+        if (senderList.stream()
+                .anyMatch(sender -> sender.getCampus().trim().equals(request.getCampus().trim()))) {
+            throw new AppException(Constant.SENDER_EXISTS, HttpStatus.CONFLICT);
         }
         senderRepository.save(senderMapper.toEntity(request));
     }
