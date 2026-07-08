@@ -1,7 +1,6 @@
 package com.unsis.scunsis_backend.service.sender;
 
 import java.util.List;
-import java.util.Optional;
 
 import com.unsis.scunsis_backend.constants.Constant;
 import com.unsis.scunsis_backend.exception.AppException;
