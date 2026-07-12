@@ -35,6 +35,9 @@ public class ActivityService {
 
     @Transactional
     public void createActivity(ActivityRequest request) {
+        if (request.getEventId() == null) {
+            throw new AppException("eventId es requerido", HttpStatus.BAD_REQUEST);
+        }
         Event event = eventRepository.findById(request.getEventId())
                 .orElseThrow(() -> new AppException("Evento no encontrado con id: " + request.getEventId(), HttpStatus.NOT_FOUND));
 

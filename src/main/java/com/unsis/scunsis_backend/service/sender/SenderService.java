@@ -39,9 +39,14 @@ public class SenderService {
 
     @Transactional
     public void createSender(SenderRequest request) {
-        List<Sender> senderList = senderRepository.getSenderByName(request.getName().trim());
+        String name = request.getName();
+        if (name == null || name.isBlank()) {
+            throw new AppException("El nombre del emisor es requerido", HttpStatus.BAD_REQUEST);
+        }
+        List<Sender> senderList = senderRepository.getSenderByName(name.trim());
+        String campus = request.getCampus();
         if (senderList.stream().anyMatch(s -> s.getCampus() != null
-                && s.getCampus().trim().equalsIgnoreCase(request.getCampus() != null ? request.getCampus().trim() : ""))) {
+                && s.getCampus().trim().equalsIgnoreCase(campus != null ? campus.trim() : ""))) {
             throw new AppException("Este emisor ya esta registrado", HttpStatus.CONFLICT);
         }
         senderRepository.save(senderMapper.toEntity(request));

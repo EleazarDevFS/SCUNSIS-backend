@@ -6,6 +6,7 @@ import com.unsis.scunsis_backend.dto.response.proof.ProofResponse;
 import com.unsis.scunsis_backend.model.enums.EParticipationRole;
 import com.unsis.scunsis_backend.model.receiver.Receiver;
 import com.unsis.scunsis_backend.service.excel.ExcelService;
+import com.unsis.scunsis_backend.service.excel.ExcelService.ParticipantRow;
 import com.unsis.scunsis_backend.service.proof.ProofService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -74,42 +76,50 @@ public class ProofController {
                     ? EParticipationRole.valueOf(role.trim().toUpperCase())
                     : null;
 
-            List<EParticipationRole> roles = excelService.parseRoles(file);
+            List<ParticipantRow> rows = excelService.parseParticipants(file, defaultRole);
 
-            List<Receiver> receivers = excelService.parseParticipants(file, defaultRole);
+            List<String> rowErrors = rows.stream()
+                    .filter(r -> r.error() != null)
+                    .map(r -> r.receiver().getName() + " " + r.receiver().getLastName() + ": " + r.error())
+                    .toList();
 
-            if (receivers.isEmpty()) {
+            List<ParticipantRow> validRows = rows.stream()
+                    .filter(r -> r.error() == null)
+                    .toList();
+
+            if (validRows.isEmpty()) {
+                List<String> allErrors = new ArrayList<>(rowErrors);
+                if (allErrors.isEmpty()) {
+                    allErrors.add("No se encontraron participantes validos en el archivo. " +
+                            "Asegurate de que las columnas NOMBRE y PRIMERAPELLIDO existan.");
+                }
                 return ResponseEntity.badRequest().body(
                         ProofBulkResponse.builder()
-                                .totalRows(0)
+                                .totalRows(rows.size())
                                 .successCount(0)
-                                .errorCount(1)
-                                .errors(List.of("No se encontraron participantes válidos en el archivo. " +
-                                        "Asegúrate de que las columnas NOMBRE y PRIMERAPELLIDO existan."))
+                                .errorCount(allErrors.size())
+                                .errors(allErrors)
                                 .build()
                 );
             }
 
-            EParticipationRole finalRole = defaultRole;
-            if (roles.isEmpty() || roles.stream().allMatch(r -> r == null)) {
-                if (finalRole == null) {
-                    return ResponseEntity.badRequest().body(
-                            ProofBulkResponse.builder()
-                                    .totalRows(receivers.size())
-                                    .successCount(0)
-                                    .errorCount(receivers.size())
-                                    .errors(List.of("No se especificó rol. Incluye la columna ROL en el Excel " +
-                                            "o pasa el parámetro 'role' en la URL."))
-                                    .build()
-                    );
-                }
-            } else {
-                finalRole = roles.get(0);
-            }
+            List<Receiver> receivers = validRows.stream()
+                    .map(ParticipantRow::receiver)
+                    .toList();
+
+            List<EParticipationRole> roles = validRows.stream()
+                    .map(ParticipantRow::role)
+                    .toList();
 
             ProofBulkResponse response = proofService.createProofsBulk(
-                    eventId, activityId, senderId, receivers, finalRole
+                    eventId, activityId, senderId, receivers, roles
             );
+
+            if (!rowErrors.isEmpty()) {
+                response.getErrors().addAll(0, rowErrors);
+                response.setErrorCount(response.getErrorCount() + rowErrors.size());
+                response.setTotalRows(response.getTotalRows() + rowErrors.size());
+            }
 
             return ResponseEntity.ok(response);
         } catch (IOException e) {
@@ -127,7 +137,7 @@ public class ProofController {
                             .totalRows(0)
                             .successCount(0)
                             .errorCount(1)
-                            .errors(List.of("Rol inválido. Usa: PONENTE, PARTICIPANTE, ORGANIZADOR o RECONOCIMIENTO"))
+                            .errors(List.of("Rol invalido. Usa: PONENTE, PARTICIPANTE, ORGANIZADOR o RECONOCIMIENTO"))
                             .build()
             );
         }
