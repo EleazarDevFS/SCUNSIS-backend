@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface IProofRepository extends JpaRepository<Proof, String> {
 
-    @Query("SELECT COUNT(p) FROM Proof p WHERE p.role = :role AND FUNCTION('YEAR', p.date) = :year")
+    @Query("SELECT COUNT(p) FROM Proof p WHERE p.role = :role AND YEAR(p.date) = :year")
     long countByRoleAndYear(@Param("role") EParticipationRole role, @Param("year") int year);
 
     boolean existsByFolio(String folio);
