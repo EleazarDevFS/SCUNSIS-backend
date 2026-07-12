@@ -1,6 +1,6 @@
 package com.unsis.scunsis_backend.dto.response.event;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 import com.unsis.scunsis_backend.model.enums.EEventType;
 
@@ -14,15 +14,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventResponse {
+    private Long eventId;
     private EEventType eventType;
-
     private String eventName;
-
-    private Date startDate;
-
-    private Date endDate;
-
+    private LocalDate startDate;
+    private LocalDate endDate;
     private String eventPlace;
-
     private String eventDescription;
 }
