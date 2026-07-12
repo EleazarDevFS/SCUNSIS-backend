@@ -159,7 +159,7 @@ Las credenciales por defecto estan en `application.properties`:
 spring.datasource.url=jdbc:postgresql://localhost:5432/scunsis
 spring.datasource.username=postgres
 spring.datasource.password=postgres
-spring.jpa.hibernate.ddl-auto=create
+spring.jpa.hibernate.ddl-auto=update
 ```
 
 Con `ddl-auto=create` las tablas se crean automaticamente al iniciar la aplicacion.
