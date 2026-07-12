@@ -1,54 +1,46 @@
 package com.unsis.scunsis_backend.mapper.sender;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Component;
-
 import com.unsis.scunsis_backend.dto.request.sender.SenderRequest;
 import com.unsis.scunsis_backend.dto.response.sender.SenderResponse;
 import com.unsis.scunsis_backend.mapper.BaseMapper;
 import com.unsis.scunsis_backend.model.sender.Sender;
+import org.springframework.stereotype.Component;
 
-import lombok.Data;
+import java.util.List;
+import java.util.stream.Collectors;
 
-@Data
 @Component
-public class SenderMapper implements BaseMapper<SenderResponse, SenderRequest, Sender>{@Override
-    
-    public Sender toEntity(SenderRequest dto) {
-        return Sender.builder()
-        .campus(dto.getCampus())
-        .name(dto.getName())
-        .build();
-    }
+public class SenderMapper implements BaseMapper<SenderResponse, SenderRequest, Sender> {
 
-    public Sender toEntity(SenderResponse dto) {
+    @Override
+    public Sender toEntity(SenderRequest request) {
         return Sender.builder()
-        .campus(dto.getCampus())
-        .name(dto.getName())
-        .build();
+                .name(request.getName())
+                .campus(request.getCampus())
+                .build();
     }
-
 
     @Override
     public SenderResponse toDto(Sender entity) {
         return SenderResponse.builder()
-        .campus(entity.getCampus())
-        .name(entity.getName())
-        .build();
+                .senderId(entity.getSenderId())
+                .name(entity.getName())
+                .campus(entity.getCampus())
+                .build();
     }
 
     @Override
     public List<SenderResponse> toDtos(List<Sender> entities) {
-       return entities.stream().map(this::toDto)
-       .collect(Collectors.toList());
+        return entities.stream().map(this::toDto).collect(Collectors.toList());
     }
 
     @Override
     public void updateEntity(SenderRequest request, Sender entity) {
-        throw new UnsupportedOperationException("Unimplemented method 'updateEntity'");
+        if (request.getName() != null) {
+            entity.setName(request.getName());
+        }
+        if (request.getCampus() != null) {
+            entity.setCampus(request.getCampus());
+        }
     }
-
-
 }
