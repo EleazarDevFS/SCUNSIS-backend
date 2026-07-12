@@ -1,67 +1,66 @@
 package com.unsis.scunsis_backend.mapper.event;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Component;
-
 import com.unsis.scunsis_backend.dto.request.event.EventRequest;
 import com.unsis.scunsis_backend.dto.response.event.EventResponse;
 import com.unsis.scunsis_backend.mapper.BaseMapper;
-import com.unsis.scunsis_backend.model.event.Event; 
+import com.unsis.scunsis_backend.model.event.Event;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
-public class EventMapper implements BaseMapper<EventResponse, EventRequest, Event>{
+public class EventMapper implements BaseMapper<EventResponse, EventRequest, Event> {
 
     @Override
-    public Event toEntity(EventRequest dto) {
+    public Event toEntity(EventRequest request) {
         return Event.builder()
-        .endDate(dto.getEndDate())
-        .eventDescription(dto.getEventDescription())
-        .eventName(dto.getEventName())
-        .eventPlace(dto.getEventPlace())
-        .eventType(dto.getEventType())
-        .endDate(dto.getEndDate())
-        .startDate(dto.getStartDate())
-        .build();
-    }
-
-    public Event toEntity(EventResponse dto) {
-        return Event.builder()
-        .endDate(dto.getEndDate())
-        .eventDescription(dto.getEventDescription())
-        .eventName(dto.getEventName())
-        .eventPlace(dto.getEventPlace())
-        .eventType(dto.getEventType())
-        .startDate(dto.getStartDate())
-        .endDate(dto.getEndDate())
-        .build();
+                .eventType(request.getEventType())
+                .eventName(request.getEventName())
+                .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
+                .eventPlace(request.getEventPlace())
+                .eventDescription(request.getEventDescription())
+                .build();
     }
 
     @Override
     public EventResponse toDto(Event entity) {
         return EventResponse.builder()
-        .endDate(entity.getEndDate())
-        .eventDescription(entity.getEventDescription())
-        .eventName(entity.getEventName())
-        .eventPlace(entity.getEventPlace())
-        .eventType(entity.getEventType())
-        .startDate(entity.getStartDate())
-        .endDate(entity.getEndDate())
-        .build();
+                .eventId(entity.getEventId())
+                .eventType(entity.getEventType())
+                .eventName(entity.getEventName())
+                .startDate(entity.getStartDate())
+                .endDate(entity.getEndDate())
+                .eventPlace(entity.getEventPlace())
+                .eventDescription(entity.getEventDescription())
+                .build();
     }
 
     @Override
     public List<EventResponse> toDtos(List<Event> entities) {
-            return entities.stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+        return entities.stream().map(this::toDto).collect(Collectors.toList());
     }
 
     @Override
     public void updateEntity(EventRequest request, Event entity) {
-        throw new UnsupportedOperationException("Unimplemented method 'updateEntity'");
+        if (request.getEventType() != null) {
+            entity.setEventType(request.getEventType());
+        }
+        if (request.getEventName() != null) {
+            entity.setEventName(request.getEventName());
+        }
+        if (request.getStartDate() != null) {
+            entity.setStartDate(request.getStartDate());
+        }
+        if (request.getEndDate() != null) {
+            entity.setEndDate(request.getEndDate());
+        }
+        if (request.getEventPlace() != null) {
+            entity.setEventPlace(request.getEventPlace());
+        }
+        if (request.getEventDescription() != null) {
+            entity.setEventDescription(request.getEventDescription());
+        }
     }
-
-
-
 }
