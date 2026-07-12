@@ -1,9 +1,9 @@
 package com.unsis.scunsis_backend.model.proof;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 import com.unsis.scunsis_backend.model.activity.Activity;
-import com.unsis.scunsis_backend.model.enums.EProofType;
+import com.unsis.scunsis_backend.model.enums.EParticipationRole;
 import com.unsis.scunsis_backend.model.event.Event;
 import com.unsis.scunsis_backend.model.receiver.Receiver;
 import com.unsis.scunsis_backend.model.sender.Sender;
@@ -15,7 +15,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,12 +24,13 @@ import lombok.NoArgsConstructor;
 @Entity
 @Data
 @Builder
-@Table(name = "Constancia")
+@Table(name = "constancia")
 @NoArgsConstructor
 @AllArgsConstructor
 public class Proof {
 
     @Id
+    @Column(name = "folio", length = 20)
     private String folio;
 
     @ManyToOne
@@ -39,21 +39,21 @@ public class Proof {
 
     @ManyToOne
     @JoinColumn(name = "fk_id_receptor")
-    private Receiver receiver;    
+    private Receiver receiver;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "fk_id_actividad")
     private Activity activity;
 
     @ManyToOne
-    @JoinColumn(name = "fk_id_event")
+    @JoinColumn(name = "fk_id_evento")
     private Event event;
 
-    @Column(name = "tipo_constancia")
     @Enumerated(EnumType.STRING)
-    private EProofType proofType;
+    @Column(name = "rol", length = 20)
+    private EParticipationRole role;
 
     @Column(name = "fecha", nullable = false)
-    private Date date;
+    private LocalDate date;
 
 }
