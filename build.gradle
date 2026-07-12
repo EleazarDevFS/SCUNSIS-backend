@@ -22,16 +22,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	// JPA Implementation
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	// Lombook implementation
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
-	// PostgreSQL Driver
 	runtimeOnly 'org.postgresql:postgresql'
-	// OpenAPI Docs
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
-
+	implementation 'org.apache.poi:poi-ooxml:5.3.0'
+	implementation 'com.github.librepdf:openpdf:1.3.40'
 }
 
 tasks.named('test') {
