@@ -1,68 +1,179 @@
 package com.unsis.scunsis_backend.service.proof;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-
-import com.unsis.scunsis_backend.constants.Constant;
-import com.unsis.scunsis_backend.exception.AppException;
-import org.springframework.http.HttpStatus;
-import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Service;
-
 import com.unsis.scunsis_backend.dto.request.proof.ProofRequest;
+import com.unsis.scunsis_backend.dto.response.proof.ProofBulkResponse;
 import com.unsis.scunsis_backend.dto.response.proof.ProofResponse;
+import com.unsis.scunsis_backend.exception.AppException;
 import com.unsis.scunsis_backend.mapper.proof.ProofMapper;
-import com.unsis.scunsis_backend.model.enums.EProofType;
+import com.unsis.scunsis_backend.model.activity.Activity;
+import com.unsis.scunsis_backend.model.enums.EParticipationRole;
+import com.unsis.scunsis_backend.model.event.Event;
 import com.unsis.scunsis_backend.model.proof.Proof;
+import com.unsis.scunsis_backend.model.receiver.Receiver;
+import com.unsis.scunsis_backend.model.sender.Sender;
+import com.unsis.scunsis_backend.repository.activity.IActivityRepository;
+import com.unsis.scunsis_backend.repository.event.IEventRepository;
 import com.unsis.scunsis_backend.repository.proof.IProofRepository;
-
-import lombok.Data;
+import com.unsis.scunsis_backend.repository.receiver.IReceiverRepository;
+import com.unsis.scunsis_backend.repository.sender.ISenderRepository;
+import com.unsis.scunsis_backend.service.pdf.PdfGenerationService;
+import com.unsis.scunsis_backend.util.FolioGenerator;
 import lombok.RequiredArgsConstructor;
-@Data
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.*;
+
 @Service
 @RequiredArgsConstructor
 public class ProofService {
 
     private final IProofRepository proofRepository;
     private final ProofMapper proofMapper;
+    private final FolioGenerator folioGenerator;
+    private final PdfGenerationService pdfGenerationService;
+    private final ISenderRepository senderRepository;
+    private final IReceiverRepository receiverRepository;
+    private final IActivityRepository activityRepository;
+    private final IEventRepository eventRepository;
 
-    public List<ProofResponse> getAll(){
-        List<Proof> proofs = proofRepository.findAll();
-        List<ProofResponse> proofsResponse = proofMapper.toDtos(proofs);
-        return proofsResponse;
-    }
-    
-    public ProofResponse getById(@NonNull String folio){
-        if(!proofRepository.existsById(folio)){
-            throw new AppException(Constant.NOT_FOUND_BY_ID, HttpStatus.NOT_FOUND);
-        }
-        Optional<Proof> proof = proofRepository.findById(folio);
-        ProofResponse proofResponse = proofMapper.toDto(proof.get());
-        return proofResponse;
+    public List<ProofResponse> getAll() {
+        return proofMapper.toDtos(proofRepository.findAll());
     }
 
-    public void deleteById(@NonNull String folio){
-        if(proofRepository.existsById(folio)){
-            proofRepository.deleteById(folio);
-        }else{
-            throw new AppException(Constant.NOT_FOUND_BY_ID, HttpStatus.NOT_FOUND);
-        }
+    public ProofResponse getById(String folio) {
+        Proof proof = proofRepository.findById(folio)
+                .orElseThrow(() -> new AppException("Constancia no encontrada con folio: " + folio, HttpStatus.NOT_FOUND));
+        return proofMapper.toDto(proof);
     }
 
-    public void createProof(@NonNull ProofRequest request){
-        String folio = this.createNewFolio(request.getProofType());
-        if(proofRepository.existsById(folio)){
-            throw new RuntimeException("This proof already exist in the DB");
+    @Transactional
+    public void deleteById(String folio) {
+        if (!proofRepository.existsByFolio(folio)) {
+            throw new AppException("Constancia no encontrada con folio: " + folio, HttpStatus.NOT_FOUND);
         }
-        Proof proof = proofMapper.toEntity(request);
+        proofRepository.deleteById(folio);
+    }
+
+    @Transactional
+    public ProofResponse createProof(ProofRequest request) {
+        if (request.getSenderId() == null) {
+            throw new AppException("senderId es requerido", HttpStatus.BAD_REQUEST);
+        }
+        if (request.getReceiverId() == null) {
+            throw new AppException("receiverId es requerido", HttpStatus.BAD_REQUEST);
+        }
+        if (request.getActivityId() == null) {
+            throw new AppException("activityId es requerido", HttpStatus.BAD_REQUEST);
+        }
+        if (request.getEventId() == null) {
+            throw new AppException("eventId es requerido", HttpStatus.BAD_REQUEST);
+        }
+        if (request.getRole() == null) {
+            throw new AppException("role es requerido", HttpStatus.BAD_REQUEST);
+        }
+
+        Sender sender = senderRepository.findById(request.getSenderId())
+                .orElseThrow(() -> new AppException("Emisor no encontrado", HttpStatus.NOT_FOUND));
+        Receiver receiver = receiverRepository.findById(request.getReceiverId())
+                .orElseThrow(() -> new AppException("Receptor no encontrado", HttpStatus.NOT_FOUND));
+        Activity activity = activityRepository.findById(request.getActivityId())
+                .orElseThrow(() -> new AppException("Actividad no encontrada", HttpStatus.NOT_FOUND));
+        Event event = eventRepository.findById(request.getEventId())
+                .orElseThrow(() -> new AppException("Evento no encontrado", HttpStatus.NOT_FOUND));
+
+        EParticipationRole role = request.getRole();
+        int currentYear = LocalDate.now().getYear();
+        long count = proofRepository.countByRoleAndYear(role, currentYear);
+        String folio = folioGenerator.generateFolio(role, count + 1, currentYear);
+
+        Proof proof = Proof.builder()
+                .folio(folio)
+                .sender(sender)
+                .receiver(receiver)
+                .activity(activity)
+                .event(event)
+                .role(role)
+                .date(LocalDate.now())
+                .build();
+
         proofRepository.save(proof);
+        return proofMapper.toDto(proof);
     }
-    @NonNull
-    public String createNewFolio(EProofType type){
-        String folio = type.getDescription()
-        .concat(String.valueOf(LocalDate.now().getYear()))
-        .concat(String.valueOf(proofRepository.countByType(type)))+"";
-        return folio;
+
+    @Transactional
+    public ProofBulkResponse createProofsBulk(
+            Long eventId,
+            Long activityId,
+            Long senderId,
+            List<Receiver> receivers,
+            List<EParticipationRole> roles
+    ) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new AppException("Evento no encontrado", HttpStatus.NOT_FOUND));
+        Activity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new AppException("Actividad no encontrada", HttpStatus.NOT_FOUND));
+        Sender sender = senderRepository.findById(senderId)
+                .orElseThrow(() -> new AppException("Emisor no encontrado", HttpStatus.NOT_FOUND));
+
+        int currentYear = LocalDate.now().getYear();
+
+        Map<EParticipationRole, Long> roleCountBases = new HashMap<>();
+        Map<EParticipationRole, Long> roleIncrements = new HashMap<>();
+
+        for (EParticipationRole r : roles) {
+            roleCountBases.putIfAbsent(r, proofRepository.countByRoleAndYear(r, currentYear));
+            roleIncrements.putIfAbsent(r, 0L);
+        }
+
+        List<String> generatedFolios = new ArrayList<>();
+        List<String> errors = new ArrayList<>();
+        int successCount = 0;
+
+        for (int i = 0; i < receivers.size(); i++) {
+            try {
+                EParticipationRole rowRole = roles.get(i);
+                long base = roleCountBases.get(rowRole);
+                long increment = roleIncrements.get(rowRole);
+                String folio = folioGenerator.generateFolio(rowRole, base + increment + 1, currentYear);
+                roleIncrements.put(rowRole, increment + 1);
+
+                Proof proof = Proof.builder()
+                        .folio(folio)
+                        .sender(sender)
+                        .receiver(receivers.get(i))
+                        .activity(activity)
+                        .event(event)
+                        .role(rowRole)
+                        .date(LocalDate.now())
+                        .build();
+
+                proofRepository.save(proof);
+                generatedFolios.add(folio);
+                successCount++;
+            } catch (Exception e) {
+                errors.add("Fila " + (i + 1) + ": " + e.getMessage());
+            }
+        }
+
+        return ProofBulkResponse.builder()
+                .totalRows(receivers.size())
+                .successCount(successCount)
+                .errorCount(errors.size())
+                .generatedFolios(generatedFolios)
+                .errors(errors)
+                .build();
+    }
+
+    public List<ProofResponse> getByActivity(Long activityId) {
+        return proofMapper.toDtos(proofRepository.findByActivityActivityId(activityId));
+    }
+
+    public byte[] generatePdf(String folio) {
+        Proof proof = proofRepository.findById(folio)
+                .orElseThrow(() -> new AppException("Constancia no encontrada con folio: " + folio, HttpStatus.NOT_FOUND));
+        return pdfGenerationService.generateCertificate(proof);
     }
 }

@@ -1,31 +1,29 @@
 package com.unsis.scunsis_backend.dto.response.proof;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
-import com.unsis.scunsis_backend.model.activity.Activity;
-import com.unsis.scunsis_backend.model.enums.EProofType;
-import com.unsis.scunsis_backend.model.event.Event;
-import com.unsis.scunsis_backend.model.receiver.Receiver;
-import com.unsis.scunsis_backend.model.sender.Sender;
+import com.unsis.scunsis_backend.model.enums.EParticipationRole;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProofResponse {
-
     private String folio;
-
-    private Sender sender;
-
-    private Receiver receiver;    
-
-    private Activity activity;
-
-    private Event event;
-
-    private EProofType proofType;
-
-    private Date date;
+    private Long senderId;
+    private String senderName;
+    private Long receiverId;
+    private String receiverFullName;
+    private String receiverEmail;
+    private Long activityId;
+    private String activityName;
+    private Long eventId;
+    private String eventName;
+    private EParticipationRole role;
+    private LocalDate date;
 }

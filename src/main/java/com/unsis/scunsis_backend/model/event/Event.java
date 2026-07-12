@@ -1,13 +1,17 @@
 package com.unsis.scunsis_backend.model.event;
 
-import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
 
 import com.unsis.scunsis_backend.model.enums.EEventType;
-import com.unsis.scunsis_backend.model.proof.Proof;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,7 +28,7 @@ public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_evento")
-    private long eventId;
+    private Long eventId;
 
     @Column(name = "tipo")
     @Enumerated(EnumType.STRING)
@@ -34,21 +38,15 @@ public class Event {
     private String eventName;
 
     @Column(name = "fecha_inicio")
-    private Date startDate;
+    private LocalDate startDate;
 
     @Column(name = "fecha_fin")
-    private Date endDate;
+    private LocalDate endDate;
 
     @Column(name = "lugar_evento", length = 200)
     private String eventPlace;
 
     @Column(name = "objetivo_evento")
     private String eventDescription;
-
-
-    @OneToMany(mappedBy = "event")
-    @Builder.Default
-    private List<Proof> proofs = new ArrayList<>();
-
 
 }
