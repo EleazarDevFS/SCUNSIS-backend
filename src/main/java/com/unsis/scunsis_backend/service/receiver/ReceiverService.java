@@ -39,6 +39,14 @@ public class ReceiverService {
 
     @Transactional
     public ReceiverResponse createReceiver(ReceiverRequest request) {
+        String name = request.getName();
+        String lastName = request.getLastName();
+        if (name == null || name.isBlank()) {
+            throw new AppException("El nombre del receptor es requerido", HttpStatus.BAD_REQUEST);
+        }
+        if (lastName == null || lastName.isBlank()) {
+            throw new AppException("El primer apellido del receptor es requerido", HttpStatus.BAD_REQUEST);
+        }
         if (request.getEmail() != null && !request.getEmail().isBlank()
                 && receiverRepository.existsByEmail(request.getEmail().trim())) {
             throw new AppException("Este correo ya esta registrado", HttpStatus.CONFLICT);
