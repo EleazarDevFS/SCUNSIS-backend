@@ -19,8 +19,10 @@ public class ExcelService {
 
     private final IReceiverRepository receiverRepository;
 
-    public List<Receiver> parseParticipants(MultipartFile file, EParticipationRole defaultRole) throws IOException {
-        List<Receiver> receivers = new ArrayList<>();
+    public record ParticipantRow(Receiver receiver, EParticipationRole role, String error) {}
+
+    public List<ParticipantRow> parseParticipants(MultipartFile file, EParticipationRole defaultRole) throws IOException {
+        List<ParticipantRow> result = new ArrayList<>();
 
         try (InputStream is = file.getInputStream();
              Workbook workbook = new XSSFWorkbook(is)) {
@@ -29,94 +31,36 @@ public class ExcelService {
             Iterator<Row> rowIterator = sheet.iterator();
 
             if (!rowIterator.hasNext()) {
-                return receivers;
+                return result;
             }
 
             Row headerRow = rowIterator.next();
             Map<String, Integer> colMap = buildColumnMap(headerRow);
+            boolean hasRoleColumn = colMap.containsKey("ROL");
 
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
                 Receiver receiver = parseRow(row, colMap);
-                if (receiver != null) {
-                    findOrCreateReceiver(receiver);
-                    receivers.add(receiver);
+
+                if (receiver == null) {
+                    continue;
                 }
+
+                EParticipationRole role = resolveRole(row, colMap, hasRoleColumn, defaultRole);
+
+                if (role == null) {
+                    result.add(new ParticipantRow(receiver, null,
+                            "Sin rol especificado. Incluye columna ROL en el Excel "
+                            + "o pasa el parametro 'role' en la URL."));
+                    continue;
+                }
+
+                findOrCreateReceiver(receiver);
+                result.add(new ParticipantRow(receiver, role, null));
             }
         }
 
-        return receivers;
-    }
-
-    public List<Receiver> parseParticipantsWithRoles(MultipartFile file, Map<Integer, EParticipationRole> rowRoles) throws IOException {
-        List<Receiver> receivers = new ArrayList<>();
-
-        try (InputStream is = file.getInputStream();
-             Workbook workbook = new XSSFWorkbook(is)) {
-
-            Sheet sheet = workbook.getSheetAt(0);
-            Iterator<Row> rowIterator = sheet.iterator();
-
-            if (!rowIterator.hasNext()) {
-                return receivers;
-            }
-
-            Row headerRow = rowIterator.next();
-            Map<String, Integer> colMap = buildColumnMap(headerRow);
-            int rowIndex = 0;
-
-            while (rowIterator.hasNext()) {
-                Row row = rowIterator.next();
-                Receiver receiver = parseRow(row, colMap);
-                if (receiver != null) {
-                    findOrCreateReceiver(receiver);
-                    receivers.add(receiver);
-                }
-                rowIndex++;
-            }
-        }
-
-        return receivers;
-    }
-
-    public List<EParticipationRole> parseRoles(MultipartFile file) throws IOException {
-        List<EParticipationRole> roles = new ArrayList<>();
-
-        try (InputStream is = file.getInputStream();
-             Workbook workbook = new XSSFWorkbook(is)) {
-
-            Sheet sheet = workbook.getSheetAt(0);
-            Iterator<Row> rowIterator = sheet.iterator();
-
-            if (!rowIterator.hasNext()) {
-                return roles;
-            }
-
-            Row headerRow = rowIterator.next();
-            Map<String, Integer> colMap = buildColumnMap(headerRow);
-
-            if (!colMap.containsKey("ROL")) {
-                return roles;
-            }
-
-            int rolCol = colMap.get("ROL");
-
-            while (rowIterator.hasNext()) {
-                Row row = rowIterator.next();
-                String roleStr = getCellValueAsString(row.getCell(rolCol));
-                if (roleStr != null && !roleStr.isBlank()) {
-                    try {
-                        roles.add(EParticipationRole.valueOf(roleStr.trim().toUpperCase()));
-                    } catch (IllegalArgumentException e) {
-                        roles.add(null);
-                    }
-                } else {
-                    roles.add(null);
-                }
-            }
-        }
-
-        return roles;
+        return result;
     }
 
     private Map<String, Integer> buildColumnMap(Row headerRow) {
@@ -171,6 +115,21 @@ public class ExcelService {
         }
         Receiver saved = receiverRepository.save(receiver);
         receiver.setReceiverId(saved.getReceiverId());
+    }
+
+    private EParticipationRole resolveRole(Row row, Map<String, Integer> colMap,
+                                            boolean hasRoleColumn, EParticipationRole defaultRole) {
+        if (hasRoleColumn) {
+            String roleStr = getCellValue(colMap, row, "ROL");
+            if (roleStr != null && !roleStr.isBlank()) {
+                try {
+                    return EParticipationRole.valueOf(roleStr.trim().toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    return null;
+                }
+            }
+        }
+        return defaultRole;
     }
 
     private String getCellValue(Map<String, Integer> colMap, Row row, String columnName) {

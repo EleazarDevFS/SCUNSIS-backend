@@ -24,8 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +59,22 @@ public class ProofService {
 
     @Transactional
     public ProofResponse createProof(ProofRequest request) {
+        if (request.getSenderId() == null) {
+            throw new AppException("senderId es requerido", HttpStatus.BAD_REQUEST);
+        }
+        if (request.getReceiverId() == null) {
+            throw new AppException("receiverId es requerido", HttpStatus.BAD_REQUEST);
+        }
+        if (request.getActivityId() == null) {
+            throw new AppException("activityId es requerido", HttpStatus.BAD_REQUEST);
+        }
+        if (request.getEventId() == null) {
+            throw new AppException("eventId es requerido", HttpStatus.BAD_REQUEST);
+        }
+        if (request.getRole() == null) {
+            throw new AppException("role es requerido", HttpStatus.BAD_REQUEST);
+        }
+
         Sender sender = senderRepository.findById(request.getSenderId())
                 .orElseThrow(() -> new AppException("Emisor no encontrado", HttpStatus.NOT_FOUND));
         Receiver receiver = receiverRepository.findById(request.getReceiverId())
@@ -94,7 +109,7 @@ public class ProofService {
             Long activityId,
             Long senderId,
             List<Receiver> receivers,
-            EParticipationRole role
+            List<EParticipationRole> roles
     ) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new AppException("Evento no encontrado", HttpStatus.NOT_FOUND));
@@ -104,7 +119,14 @@ public class ProofService {
                 .orElseThrow(() -> new AppException("Emisor no encontrado", HttpStatus.NOT_FOUND));
 
         int currentYear = LocalDate.now().getYear();
-        long currentCount = proofRepository.countByRoleAndYear(role, currentYear);
+
+        Map<EParticipationRole, Long> roleCountBases = new HashMap<>();
+        Map<EParticipationRole, Long> roleIncrements = new HashMap<>();
+
+        for (EParticipationRole r : roles) {
+            roleCountBases.putIfAbsent(r, proofRepository.countByRoleAndYear(r, currentYear));
+            roleIncrements.putIfAbsent(r, 0L);
+        }
 
         List<String> generatedFolios = new ArrayList<>();
         List<String> errors = new ArrayList<>();
@@ -112,7 +134,11 @@ public class ProofService {
 
         for (int i = 0; i < receivers.size(); i++) {
             try {
-                String folio = folioGenerator.generateFolio(role, currentCount + i + 1, currentYear);
+                EParticipationRole rowRole = roles.get(i);
+                long base = roleCountBases.get(rowRole);
+                long increment = roleIncrements.get(rowRole);
+                String folio = folioGenerator.generateFolio(rowRole, base + increment + 1, currentYear);
+                roleIncrements.put(rowRole, increment + 1);
 
                 Proof proof = Proof.builder()
                         .folio(folio)
@@ -120,7 +146,7 @@ public class ProofService {
                         .receiver(receivers.get(i))
                         .activity(activity)
                         .event(event)
-                        .role(role)
+                        .role(rowRole)
                         .date(LocalDate.now())
                         .build();
 
