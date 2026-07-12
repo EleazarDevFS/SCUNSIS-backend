@@ -1,27 +1,28 @@
 package com.unsis.scunsis_backend.model.receiver;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.unsis.scunsis_backend.model.proof.Proof;
-
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
 @Entity
+@Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "receptor")
 public class Receiver {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_receptor")
-    private long receiverId;
+    private Long receiverId;
 
     @Column(name = "nombre", length = 50, nullable = false)
     private String name;
@@ -41,7 +42,4 @@ public class Receiver {
     @Column(name = "grado_academico", length = 30)
     private String academicGrade;
 
-    @OneToMany(mappedBy = "receiver")
-    @Builder.Default
-    private List<Proof> proofs = new ArrayList<>();
 }
