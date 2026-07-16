@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/scunsis/api/v1/sender")
+@RequestMapping("/api/v1/sender")
 @RequiredArgsConstructor
 public class SenderController {
 
