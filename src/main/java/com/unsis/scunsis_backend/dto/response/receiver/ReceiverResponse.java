@@ -1,5 +1,6 @@
 package com.unsis.scunsis_backend.dto.response.receiver;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,4 +18,5 @@ public class ReceiverResponse {
     private String phone;
     private String email;
     private String academicGrade;
+    private String folio;
 }
