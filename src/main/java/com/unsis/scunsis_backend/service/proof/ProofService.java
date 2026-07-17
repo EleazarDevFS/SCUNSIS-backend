@@ -22,6 +22,7 @@ import com.unsis.scunsis_backend.repository.event.IEventRepository;
 import com.unsis.scunsis_backend.repository.proof.IProofRepository;
 import com.unsis.scunsis_backend.repository.receiver.IReceiverRepository;
 import com.unsis.scunsis_backend.repository.sender.ISenderRepository;
+import com.unsis.scunsis_backend.service.excel.ExcelService;
 import com.unsis.scunsis_backend.service.pdf.PdfGenerationService;
 import com.unsis.scunsis_backend.util.FolioGenerator;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -39,6 +41,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.*;
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -52,6 +55,7 @@ public class ProofService {
     private final IReceiverRepository receiverRepository;
     private final IActivityRepository activityRepository;
     private final IEventRepository eventRepository;
+    private final ExcelService excelService;
 
     @Value("${app.pdf.generated-dir}")
     private String generatedDir;
@@ -186,6 +190,74 @@ public class ProofService {
 
     public List<ProofResponse> getByActivity(Long activityId) {
         return proofMapper.toDtos(proofRepository.findByActivityActivityId(activityId));
+    }
+
+    @Transactional
+    public ProofBulkResponse uploadAndCreateProofs(MultipartFile file, Long eventId, Long activityId, Long senderId, String role) {
+        try {
+            EParticipationRole defaultRole = role != null
+                    ? EParticipationRole.valueOf(role.trim().toUpperCase())
+                    : null;
+
+            List<ExcelService.ParticipantRow> rows = excelService.parseParticipants(file, defaultRole);
+
+            List<String> rowErrors = rows.stream()
+                    .filter(r -> r.error() != null)
+                    .map(r -> r.receiver().getName() + " " + r.receiver().getLastName() + ": " + r.error())
+                    .toList();
+
+            List<ExcelService.ParticipantRow> validRows = rows.stream()
+                    .filter(r -> r.error() == null)
+                    .toList();
+
+            if (validRows.isEmpty()) {
+                List<String> allErrors = new ArrayList<>(rowErrors);
+                if (allErrors.isEmpty()) {
+                    allErrors.add("No se encontraron participantes validos en el archivo. " +
+                            "Asegurate de que las columnas NOMBRE y PRIMERAPELLIDO existan.");
+                }
+                return ProofBulkResponse.builder()
+                        .totalRows(rows.size())
+                        .successCount(0)
+                        .errorCount(allErrors.size())
+                        .errors(allErrors)
+                        .build();
+            }
+
+            List<Receiver> receivers = validRows.stream()
+                    .map(ExcelService.ParticipantRow::receiver)
+                    .toList();
+
+            List<EParticipationRole> roles = validRows.stream()
+                    .map(ExcelService.ParticipantRow::role)
+                    .toList();
+
+            ProofBulkResponse response = createProofsBulk(
+                    eventId, activityId, senderId, receivers, roles
+            );
+
+            if (!rowErrors.isEmpty()) {
+                response.getErrors().addAll(0, rowErrors);
+                response.setErrorCount(response.getErrorCount() + rowErrors.size());
+                response.setTotalRows(response.getTotalRows() + rowErrors.size());
+            }
+
+            return response;
+        } catch (IOException e) {
+            return ProofBulkResponse.builder()
+                    .totalRows(0)
+                    .successCount(0)
+                    .errorCount(1)
+                    .errors(List.of("Error al leer el archivo: " + e.getMessage()))
+                    .build();
+        } catch (IllegalArgumentException e) {
+            return ProofBulkResponse.builder()
+                    .totalRows(0)
+                    .successCount(0)
+                    .errorCount(1)
+                    .errors(List.of("Rol invalido. Usa: PONENTE, PARTICIPANTE, ORGANIZADOR o RECONOCIMIENTO"))
+                    .build();
+        }
     }
 
     public byte[] generatePdf(String folio) {
