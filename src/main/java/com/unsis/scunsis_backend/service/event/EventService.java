@@ -4,6 +4,7 @@ import com.unsis.scunsis_backend.dto.request.event.EventRequest;
 import com.unsis.scunsis_backend.dto.response.event.EventResponse;
 import com.unsis.scunsis_backend.exception.AppException;
 import com.unsis.scunsis_backend.mapper.event.EventMapper;
+import com.unsis.scunsis_backend.model.event.Event;
 import com.unsis.scunsis_backend.repository.event.IEventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -39,5 +40,19 @@ public class EventService {
             throw new AppException("Evento no encontrado con id: " + eventId, HttpStatus.NOT_FOUND);
         }
         eventRepository.deleteById(eventId);
+    }
+
+    @Transactional
+    public EventResponse updateEvent(Long eventId, EventRequest request) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new AppException("Evento no encontrado con id: " + eventId, HttpStatus.NOT_FOUND));
+        if (request.getEventName() != null) event.setEventName(request.getEventName());
+        if (request.getEventDescription() != null) event.setEventDescription(request.getEventDescription());
+        if (request.getEventPlace() != null) event.setEventPlace(request.getEventPlace());
+        if (request.getEventType() != null) event.setEventType(request.getEventType());
+        if (request.getStartDate() != null) event.setStartDate(request.getStartDate());
+        if (request.getEndDate() != null) event.setEndDate(request.getEndDate());
+        event = eventRepository.save(event);
+        return eventMapper.toDto(event);
     }
 }

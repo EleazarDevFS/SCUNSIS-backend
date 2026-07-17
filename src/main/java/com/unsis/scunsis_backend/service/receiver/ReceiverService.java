@@ -64,6 +64,17 @@ public class ReceiverService {
         return response;
     }
 
+    @Transactional
+    public ReceiverResponse updateReceiver(long receiverId, ReceiverRequest request) {
+        Receiver receiver = receiverRepository.findById(receiverId)
+                .orElseThrow(() -> new AppException("Receptor no encontrado con id: " + receiverId, HttpStatus.NOT_FOUND));
+        receiverMapper.updateEntity(request, receiver);
+        receiver = receiverRepository.save(receiver);
+        ReceiverResponse response = receiverMapper.toDto(receiver);
+        response.setFolio(generateFolio());
+        return response;
+    }
+
     private String generateFolio() {
         int year = Year.now().getValue();
         long count = proofRepository.countByRoleAndYear(EParticipationRole.PARTICIPANTE, year);

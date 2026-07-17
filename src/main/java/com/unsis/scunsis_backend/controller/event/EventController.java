@@ -23,6 +23,11 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    @PutMapping("/{eventId}")
+    public ResponseEntity<EventResponse> updateEvent(@PathVariable Long eventId, @RequestBody EventRequest request) {
+        return ResponseEntity.ok(eventService.updateEvent(eventId, request));
+    }
+
     @DeleteMapping("/{eventId}")
     public ResponseEntity<Void> deleteEventById(@PathVariable Long eventId) {
         eventService.deleteEventById(eventId);

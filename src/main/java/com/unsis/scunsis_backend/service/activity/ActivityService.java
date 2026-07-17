@@ -53,4 +53,22 @@ public class ActivityService {
         }
         activityRepository.deleteById(activityId);
     }
+
+    @Transactional
+    public ActivityResponse updateActivity(long activityId, ActivityRequest request) {
+        Activity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new AppException("Actividad no encontrada con id: " + activityId, HttpStatus.NOT_FOUND));
+        if (request.getActivityName() != null) activity.setActivityName(request.getActivityName());
+        if (request.getActivityDescription() != null) activity.setActivityDescription(request.getActivityDescription());
+        if (request.getActivityPlace() != null) activity.setActivityPlace(request.getActivityPlace());
+        if (request.getStartDate() != null) activity.setStartDate(request.getStartDate());
+        if (request.getEndDate() != null) activity.setEndDate(request.getEndDate());
+        if (request.getEventId() != null) {
+            Event event = eventRepository.findById(request.getEventId())
+                    .orElseThrow(() -> new AppException("Evento no encontrado con id: " + request.getEventId(), HttpStatus.NOT_FOUND));
+            activity.setEvent(event);
+        }
+        activity = activityRepository.save(activity);
+        return activityMapper.toDto(activity);
+    }
 }

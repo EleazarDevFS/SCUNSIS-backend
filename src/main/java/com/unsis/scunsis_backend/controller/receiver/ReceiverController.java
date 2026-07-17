@@ -32,6 +32,11 @@ public class ReceiverController {
         return ResponseEntity.status(HttpStatus.CREATED).body(receiverService.createReceiver(request));
     }
 
+    @PutMapping("/{receiverId}")
+    public ResponseEntity<ReceiverResponse> updateReceiver(@PathVariable long receiverId, @RequestBody ReceiverRequest request) {
+        return ResponseEntity.ok(receiverService.updateReceiver(receiverId, request));
+    }
+
     @DeleteMapping("/{receiverId}")
     public ResponseEntity<Void> deleteById(@PathVariable long receiverId) {
         receiverService.deleteById(receiverId);

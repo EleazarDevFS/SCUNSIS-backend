@@ -33,6 +33,11 @@ public class ActivityController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    @PutMapping("/{activityId}")
+    public ResponseEntity<ActivityResponse> updateActivity(@PathVariable long activityId, @RequestBody ActivityRequest request) {
+        return ResponseEntity.ok(activityService.updateActivity(activityId, request));
+    }
+
     @DeleteMapping("/{activityId}")
     public ResponseEntity<Void> deleteById(@PathVariable long activityId) {
         activityService.deleteById(activityId);

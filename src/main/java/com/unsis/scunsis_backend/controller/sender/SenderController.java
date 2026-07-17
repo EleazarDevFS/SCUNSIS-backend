@@ -33,6 +33,11 @@ public class SenderController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    @PutMapping("/{senderId}")
+    public ResponseEntity<SenderResponse> updateSender(@PathVariable long senderId, @RequestBody SenderRequest request) {
+        return ResponseEntity.ok(senderService.updateSender(senderId, request));
+    }
+
     @DeleteMapping("/{senderId}")
     public ResponseEntity<Void> deleteById(@PathVariable long senderId) {
         senderService.deleteById(senderId);
