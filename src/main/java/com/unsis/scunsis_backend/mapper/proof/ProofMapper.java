@@ -8,13 +8,18 @@ import com.unsis.scunsis_backend.model.event.Event;
 import com.unsis.scunsis_backend.model.proof.Proof;
 import com.unsis.scunsis_backend.model.receiver.Receiver;
 import com.unsis.scunsis_backend.model.sender.Sender;
+import com.unsis.scunsis_backend.repository.proof.IProofFileRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class ProofMapper implements BaseMapper<ProofResponse, ProofRequest, Proof> {
+
+    private final IProofFileRepository proofFileRepository;
 
     @Override
     public Proof toEntity(ProofRequest request) {
@@ -33,6 +38,10 @@ public class ProofMapper implements BaseMapper<ProofResponse, ProofRequest, Proo
                 + " " + entity.getReceiver().getLastName()
                 + (entity.getReceiver().getTwoLastName() != null ? " " + entity.getReceiver().getTwoLastName() : "");
 
+        String rutaPdf = proofFileRepository.findByFolio(entity.getFolio())
+                .map(pf -> pf.getRutaPdf())
+                .orElse(null);
+
         return ProofResponse.builder()
                 .folio(entity.getFolio())
                 .senderId(entity.getSender() != null ? entity.getSender().getSenderId() : null)
@@ -46,6 +55,7 @@ public class ProofMapper implements BaseMapper<ProofResponse, ProofRequest, Proo
                 .eventName(entity.getEvent() != null ? entity.getEvent().getEventName() : null)
                 .role(entity.getRole())
                 .date(entity.getDate())
+                .rutaPdf(rutaPdf)
                 .build();
     }
 

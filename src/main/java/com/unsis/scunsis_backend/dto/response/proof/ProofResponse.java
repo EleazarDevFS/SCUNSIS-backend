@@ -26,4 +26,5 @@ public class ProofResponse {
     private String eventName;
     private EParticipationRole role;
     private LocalDate date;
+    private String rutaPdf;
 }
