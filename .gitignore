@@ -40,6 +40,8 @@ out/
 *.sql
 *src/main/resources/data.sql
 
+*src/main/resources/static/
+
 ### test excel ###
 *.xlsx
 *.ods
