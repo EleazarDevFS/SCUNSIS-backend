@@ -28,6 +28,7 @@ import com.unsis.scunsis_backend.service.excel.ExcelService;
 import com.unsis.scunsis_backend.service.pdf.PdfGenerationService;
 import com.unsis.scunsis_backend.util.FolioGenerator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -43,11 +44,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProofService {
 
     private final IProofRepository proofRepository;
@@ -61,6 +64,11 @@ public class ProofService {
     private final IEventRepository eventRepository;
     private final ExcelService excelService;
 
+    private static final String PROOF_NOT_FOUND = "Constancia no encontrada con folio: ";
+    private static final String SENDER_NOT_FOUND = "Emisor no encontrado";
+    private static final String ACTIVITY_NOT_FOUND = "Actividad no encontrada";
+    private static final String EVENT_NOT_FOUND = "Evento no encontrado";
+
     @Value("${app.pdf.generated-dir}")
     private String generatedDir;
 
@@ -70,20 +78,22 @@ public class ProofService {
 
     public ProofResponse getById(String folio) {
         Proof proof = proofRepository.findById(folio)
-                .orElseThrow(() -> new AppException("Constancia no encontrada con folio: " + folio, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(PROOF_NOT_FOUND + folio, HttpStatus.NOT_FOUND));
         return proofMapper.toDto(proof);
     }
 
     @Transactional
     public void deleteById(String folio) {
         Proof proof = proofRepository.findById(folio)
-                .orElseThrow(() -> new AppException("Constancia no encontrada con folio: " + folio, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(PROOF_NOT_FOUND + folio, HttpStatus.NOT_FOUND));
 
         proofFileRepository.findByFolio(folio).ifPresent(pf -> {
             try {
                 Path filePath = Paths.get(pf.getRutaPdf());
                 Files.deleteIfExists(filePath);
-            } catch (IOException ignored) {}
+            } catch (IOException e) {
+                log.error("Error al eliminar archivo PDF: {}", e.getMessage());
+            }
             proofFileRepository.delete(pf);
         });
 
@@ -109,16 +119,16 @@ public class ProofService {
         }
 
         Sender sender = senderRepository.findById(request.getSenderId())
-                .orElseThrow(() -> new AppException("Emisor no encontrado", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(SENDER_NOT_FOUND, HttpStatus.NOT_FOUND));
         Receiver receiver = receiverRepository.findById(request.getReceiverId())
                 .orElseThrow(() -> new AppException("Receptor no encontrado", HttpStatus.NOT_FOUND));
         Activity activity = activityRepository.findById(request.getActivityId())
-                .orElseThrow(() -> new AppException("Actividad no encontrada", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ACTIVITY_NOT_FOUND, HttpStatus.NOT_FOUND));
         Event event = eventRepository.findById(request.getEventId())
-                .orElseThrow(() -> new AppException("Evento no encontrado", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(EVENT_NOT_FOUND, HttpStatus.NOT_FOUND));
 
         EParticipationRole role = request.getRole();
-        int currentYear = LocalDate.now().getYear();
+        int currentYear = LocalDate.now(ZoneId.systemDefault()).getYear();
         long count = proofRepository.countByRoleAndYear(role, currentYear);
         String folio = folioGenerator.generateFolio(role, count + 1, currentYear);
 
@@ -129,7 +139,7 @@ public class ProofService {
                 .activity(activity)
                 .event(event)
                 .role(role)
-                .date(LocalDate.now())
+                .date(LocalDate.now(ZoneId.systemDefault()))
                 .build();
 
         proofRepository.save(proof);
@@ -145,16 +155,16 @@ public class ProofService {
             List<EParticipationRole> roles
     ) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new AppException("Evento no encontrado", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(EVENT_NOT_FOUND, HttpStatus.NOT_FOUND));
         Activity activity = activityRepository.findById(activityId)
-                .orElseThrow(() -> new AppException("Actividad no encontrada", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(ACTIVITY_NOT_FOUND, HttpStatus.NOT_FOUND));
         Sender sender = senderRepository.findById(senderId)
-                .orElseThrow(() -> new AppException("Emisor no encontrado", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(SENDER_NOT_FOUND, HttpStatus.NOT_FOUND));
 
-        int currentYear = LocalDate.now().getYear();
+        int currentYear = LocalDate.now(ZoneId.systemDefault()).getYear();
 
-        Map<EParticipationRole, Long> roleCountBases = new HashMap<>();
-        Map<EParticipationRole, Long> roleIncrements = new HashMap<>();
+        Map<EParticipationRole, Long> roleCountBases = new EnumMap<>(EParticipationRole.class);
+        Map<EParticipationRole, Long> roleIncrements = new EnumMap<>(EParticipationRole.class);
 
         for (EParticipationRole r : roles) {
             roleCountBases.putIfAbsent(r, proofRepository.countByRoleAndYear(r, currentYear));
@@ -180,7 +190,7 @@ public class ProofService {
                         .activity(activity)
                         .event(event)
                         .role(rowRole)
-                        .date(LocalDate.now())
+                        .date(LocalDate.now(ZoneId.systemDefault()))
                         .build();
 
                 proofRepository.save(proof);
@@ -285,7 +295,7 @@ public class ProofService {
         }
 
         Proof proof = proofRepository.findById(folio)
-                .orElseThrow(() -> new AppException("Constancia no encontrada con folio: " + folio, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(PROOF_NOT_FOUND + folio, HttpStatus.NOT_FOUND));
         return pdfGenerationService.generateCertificate(proof);
     }
 
@@ -318,16 +328,16 @@ public class ProofService {
             EParticipationRole role = null;
             long roleCountBase = 0;
             long roleIncrement = 0;
-            int currentYear = LocalDate.now().getYear();
+            int currentYear = LocalDate.now(ZoneId.systemDefault()).getYear();
 
             if (request.getSenderId() != null && request.getActivityId() != null
                     && request.getEventId() != null && request.getRole() != null) {
                 sender = senderRepository.findById(request.getSenderId())
-                        .orElseThrow(() -> new AppException("Emisor no encontrado", HttpStatus.NOT_FOUND));
+                        .orElseThrow(() -> new AppException(SENDER_NOT_FOUND, HttpStatus.NOT_FOUND));
                 activity = activityRepository.findById(request.getActivityId())
-                        .orElseThrow(() -> new AppException("Actividad no encontrada", HttpStatus.NOT_FOUND));
+                        .orElseThrow(() -> new AppException(ACTIVITY_NOT_FOUND, HttpStatus.NOT_FOUND));
                 event = eventRepository.findById(request.getEventId())
-                        .orElseThrow(() -> new AppException("Evento no encontrado", HttpStatus.NOT_FOUND));
+                        .orElseThrow(() -> new AppException(EVENT_NOT_FOUND, HttpStatus.NOT_FOUND));
                 role = EParticipationRole.valueOf(request.getRole().trim().toUpperCase());
                 roleCountBase = proofRepository.countByRoleAndYear(role, currentYear);
             }
@@ -336,11 +346,10 @@ public class ProofService {
             for (int i = 0; i < persons.size(); i++) {
                 List<String> person = persons.get(i);
 
-                String nombre = person.size() > 0 ? person.get(0) : "";
+                String nombre = !person.isEmpty() ? person.get(0) : "";
                 String primerApellido = person.size() > 1 ? person.get(1) : "";
                 String segundoApellido = person.size() > 2 ? person.get(2) : "";
                 String gradoAcademico = person.size() > 3 ? person.get(3) : "";
-                String grado = person.size() > 4 ? person.get(4) : "";
 
                 String nombreCompleto = String.join(" ",
                         List.of(nombre, primerApellido, segundoApellido).stream()
@@ -383,14 +392,14 @@ public class ProofService {
                             .activity(activity)
                             .event(event)
                             .role(role)
-                            .date(LocalDate.now())
+                            .date(LocalDate.now(ZoneId.systemDefault()))
                             .build();
                     proofRepository.save(proof);
 
                     ProofFile proofFile = ProofFile.builder()
                             .folio(folio)
                             .rutaPdf(filePath.toString())
-                            .fechaCreacion(LocalDateTime.now())
+                            .fechaCreacion(LocalDateTime.now(ZoneId.systemDefault()))
                             .build();
                     proofFileRepository.save(proofFile);
 

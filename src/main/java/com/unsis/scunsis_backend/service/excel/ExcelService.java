@@ -71,7 +71,6 @@ public class ExcelService {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     private <T> void processRow(T row, Map<String, Integer> colMap,
                                  boolean hasRoleColumn, EParticipationRole defaultRole,
                                  List<ParticipantRow> result, boolean isXlsx) {
