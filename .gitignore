@@ -42,6 +42,8 @@ out/
 
 *src/main/resources/static/
 
+*.env
+
 ### test excel ###
 *.xlsx
 *.ods
