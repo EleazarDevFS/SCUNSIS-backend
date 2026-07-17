@@ -15,10 +15,12 @@ import com.unsis.scunsis_backend.model.activity.Activity;
 import com.unsis.scunsis_backend.model.enums.EParticipationRole;
 import com.unsis.scunsis_backend.model.event.Event;
 import com.unsis.scunsis_backend.model.proof.Proof;
+import com.unsis.scunsis_backend.model.proof.ProofFile;
 import com.unsis.scunsis_backend.model.receiver.Receiver;
 import com.unsis.scunsis_backend.model.sender.Sender;
 import com.unsis.scunsis_backend.repository.activity.IActivityRepository;
 import com.unsis.scunsis_backend.repository.event.IEventRepository;
+import com.unsis.scunsis_backend.repository.proof.IProofFileRepository;
 import com.unsis.scunsis_backend.repository.proof.IProofRepository;
 import com.unsis.scunsis_backend.repository.receiver.IReceiverRepository;
 import com.unsis.scunsis_backend.repository.sender.ISenderRepository;
@@ -40,6 +42,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.io.IOException;
 
@@ -48,6 +51,7 @@ import java.io.IOException;
 public class ProofService {
 
     private final IProofRepository proofRepository;
+    private final IProofFileRepository proofFileRepository;
     private final ProofMapper proofMapper;
     private final FolioGenerator folioGenerator;
     private final PdfGenerationService pdfGenerationService;
@@ -72,10 +76,18 @@ public class ProofService {
 
     @Transactional
     public void deleteById(String folio) {
-        if (!proofRepository.existsByFolio(folio)) {
-            throw new AppException("Constancia no encontrada con folio: " + folio, HttpStatus.NOT_FOUND);
-        }
-        proofRepository.deleteById(folio);
+        Proof proof = proofRepository.findById(folio)
+                .orElseThrow(() -> new AppException("Constancia no encontrada con folio: " + folio, HttpStatus.NOT_FOUND));
+
+        proofFileRepository.findByFolio(folio).ifPresent(pf -> {
+            try {
+                Path filePath = Paths.get(pf.getRutaPdf());
+                Files.deleteIfExists(filePath);
+            } catch (IOException ignored) {}
+            proofFileRepository.delete(pf);
+        });
+
+        proofRepository.delete(proof);
     }
 
     @Transactional
@@ -261,6 +273,17 @@ public class ProofService {
     }
 
     public byte[] generatePdf(String folio) {
+        Path outputDir = Paths.get(generatedDir).toAbsolutePath().normalize();
+        Path filePath = outputDir.resolve("constancia-" + folio + ".pdf");
+
+        if (Files.exists(filePath)) {
+            try {
+                return Files.readAllBytes(filePath);
+            } catch (IOException e) {
+                throw new AppException("Error al leer el archivo PDF: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
         Proof proof = proofRepository.findById(folio)
                 .orElseThrow(() -> new AppException("Constancia no encontrada con folio: " + folio, HttpStatus.NOT_FOUND));
         return pdfGenerationService.generateCertificate(proof);
@@ -285,17 +308,43 @@ public class ProofService {
             Files.createDirectories(outputDir);
 
             List<List<String>> persons = request.getData();
+            List<String> folios = request.getFolios();
+            List<String> generatedFolios = new ArrayList<>();
+            List<String> generatedPaths = new ArrayList<>();
+
+            Sender sender = null;
+            Activity activity = null;
+            Event event = null;
+            EParticipationRole role = null;
+
+            if (request.getSenderId() != null && request.getActivityId() != null
+                    && request.getEventId() != null && request.getRole() != null) {
+                sender = senderRepository.findById(request.getSenderId())
+                        .orElseThrow(() -> new AppException("Emisor no encontrado", HttpStatus.NOT_FOUND));
+                activity = activityRepository.findById(request.getActivityId())
+                        .orElseThrow(() -> new AppException("Actividad no encontrada", HttpStatus.NOT_FOUND));
+                event = eventRepository.findById(request.getEventId())
+                        .orElseThrow(() -> new AppException("Evento no encontrado", HttpStatus.NOT_FOUND));
+                role = EParticipationRole.valueOf(request.getRole().trim().toUpperCase());
+            }
+
             int count = 0;
-            for (List<String> person : persons) {
+            for (int i = 0; i < persons.size(); i++) {
+                List<String> person = persons.get(i);
+                String folio = (folios != null && i < folios.size()) ? folios.get(i) : null;
+
                 String nombre = person.size() > 0 ? person.get(0) : "";
                 String primerApellido = person.size() > 1 ? person.get(1) : "";
                 String segundoApellido = person.size() > 2 ? person.get(2) : "";
+                String gradoAcademico = person.size() > 3 ? person.get(3) : "";
+                String grado = person.size() > 4 ? person.get(4) : "";
+
                 String nombreCompleto = String.join(" ",
                         List.of(nombre, primerApellido, segundoApellido).stream()
                                 .filter(s -> s != null && !s.isBlank())
                                 .toArray(String[]::new));
 
-                String filename = "constancia-" + nombreCompleto.replaceAll("\\s+", "_") + ".pdf";
+                String filename = "constancia-" + (folio != null ? folio : nombreCompleto.replaceAll("\\s+", "_")) + ".pdf";
                 Path filePath = outputDir.resolve(filename);
 
                 try (OutputStream os = Files.newOutputStream(filePath)) {
@@ -308,12 +357,46 @@ public class ProofService {
                     document.add(pdfImage);
                     document.close();
                 }
+
+                if (folio != null && sender != null && activity != null && event != null && role != null) {
+                    Receiver receiver = Receiver.builder()
+                            .name(nombre)
+                            .lastName(primerApellido)
+                            .twoLastName(segundoApellido.isEmpty() ? null : segundoApellido)
+                            .academicGrade(gradoAcademico.isEmpty() ? null : gradoAcademico)
+                            .build();
+                    receiver = receiverRepository.save(receiver);
+
+                    Proof proof = Proof.builder()
+                            .folio(folio)
+                            .sender(sender)
+                            .receiver(receiver)
+                            .activity(activity)
+                            .event(event)
+                            .role(role)
+                            .date(LocalDate.now())
+                            .build();
+                    proofRepository.save(proof);
+
+                    ProofFile proofFile = ProofFile.builder()
+                            .folio(folio)
+                            .rutaPdf(filePath.toString())
+                            .fechaCreacion(LocalDateTime.now())
+                            .build();
+                    proofFileRepository.save(proofFile);
+
+                    generatedFolios.add(folio);
+                    generatedPaths.add(filePath.toString());
+                }
+
                 count++;
             }
 
             return CanvasPdfResponse.builder()
                     .count(count)
                     .path(outputDir.toString())
+                    .generatedFolios(generatedFolios.isEmpty() ? null : generatedFolios)
+                    .generatedPaths(generatedPaths.isEmpty() ? null : generatedPaths)
                     .build();
         } catch (AppException e) {
             throw e;
