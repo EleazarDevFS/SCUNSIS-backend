@@ -6,6 +6,7 @@ import com.unsis.scunsis_backend.service.event.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,28 +18,33 @@ public class EventController {
 
     private final EventService eventService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<Void> createEvent(@RequestBody EventRequest request) {
         eventService.createEvent(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{eventId}")
     public ResponseEntity<EventResponse> updateEvent(@PathVariable Long eventId, @RequestBody EventRequest request) {
         return ResponseEntity.ok(eventService.updateEvent(eventId, request));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{eventId}")
     public ResponseEntity<Void> deleteEventById(@PathVariable Long eventId) {
         eventService.deleteEventById(eventId);
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAPTURISTA')")
     @GetMapping("/{eventId}")
     public ResponseEntity<EventResponse> getEventById(@PathVariable Long eventId) {
         return ResponseEntity.ok(eventService.getEventById(eventId));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAPTURISTA')")
     @GetMapping
     public ResponseEntity<List<EventResponse>> getAllEvent() {
         return ResponseEntity.ok(eventService.getAllEvent());
