@@ -14,4 +14,9 @@ import lombok.NoArgsConstructor;
 public class CanvasPdfRequest {
     private String canvasImage;
     private List<List<String>> data;
+    private List<String> folios;
+    private Long senderId;
+    private Long activityId;
+    private Long eventId;
+    private String role;
 }
