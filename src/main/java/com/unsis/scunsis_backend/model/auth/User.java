@@ -26,4 +26,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ERole role;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean mustChangePassword = true;
 }

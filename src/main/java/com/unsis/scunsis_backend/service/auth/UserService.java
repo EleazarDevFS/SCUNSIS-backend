@@ -44,8 +44,17 @@ public class UserService {
                 .username(request.getUsername().trim())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(role)
+                .mustChangePassword(true)
                 .build();
         return toResponse(userRepository.save(user));
+    }
+
+    public void changePassword(Long id, String newPassword) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setMustChangePassword(false);
+        userRepository.save(user);
     }
 
     public UserResponse update(Long id, UserRequest request, String currentUsername) {
@@ -86,6 +95,7 @@ public class UserService {
                 .id(user.getId())
                 .username(user.getUsername())
                 .role(user.getRole().name())
+                .mustChangePassword(user.isMustChangePassword())
                 .build();
     }
 }
