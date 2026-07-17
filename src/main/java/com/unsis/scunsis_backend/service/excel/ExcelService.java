@@ -56,7 +56,7 @@ public class ExcelService {
                 Table sheet = doc.getSheetByIndex(0);
                 List<org.odftoolkit.simple.table.Row> rows = sheet.getRowList();
                 if (rows.isEmpty()) return result;
-                Map<String, Integer> colMap = buildColumnMap(rows.get(0), false);
+                Map<String, Integer> colMap = buildColumnMap(rows.get(0));
                 boolean hasRoleColumn = colMap.containsKey("ROL");
                 for (int i = 1; i < rows.size(); i++) {
                     org.odftoolkit.simple.table.Row row = rows.get(i);
@@ -131,7 +131,7 @@ public class ExcelService {
         return colMap;
     }
 
-    private Map<String, Integer> buildColumnMap(org.odftoolkit.simple.table.Row headerRow, boolean isXlsx) {
+    private Map<String, Integer> buildColumnMap(org.odftoolkit.simple.table.Row headerRow) {
         Map<String, Integer> colMap = new HashMap<>();
         int cellCount = headerRow.getCellCount();
         for (int i = 0; i < cellCount; i++) {
