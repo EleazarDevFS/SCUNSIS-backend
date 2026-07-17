@@ -45,7 +45,7 @@ Los folios se generan automaticamente con el formato: `CODIGO-YYYY-NNNN`
 
 Ejemplo: `PON-2025-0001`, `PAR-2025-0042`
 
-La secuencia es independiente por cada combinacion de rol + ano.
+La secuencia es independiente por cada combinacion de rol + año.
 
 ## Carga masiva desde Excel
 
