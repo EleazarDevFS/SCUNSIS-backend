@@ -23,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.Month;
 
 @Component
 @RequiredArgsConstructor
@@ -44,15 +45,6 @@ public class DataInitializer implements CommandLineRunner {
     private Event event4;
     private Event event5;
 
-    private Activity activity1; 
-    private Activity activity2;
-    private Activity activity3;
-    private Activity activity4;
-    private Activity activity5;
-    private Activity activity6;
-    private Activity activity7;
-    private Activity activity8;
-    private Activity activity9;
 
     private static final String ADMIN_USERNAME = "admin";
     private static final String CAPTURISTA_USERNAME = "capturista";
@@ -113,25 +105,25 @@ public class DataInitializer implements CommandLineRunner {
 
     private void seedEvents() {
         if (eventRepository.count() > 0) return;
-        event1 = eventRepository.save(Event.builder().eventType(EEventType.FISICO).eventName("Congreso Internacional de Ingenieria de Software").startDate(LocalDate.of(2025, 3, 15)).endDate(LocalDate.of(2025, 3, 17)).eventPlace("Auditorio Principal, Campus Central").eventDescription("Compartir avances en el desarrollo de software y metodologias agiles").build());
-        event2 = eventRepository.save(Event.builder().eventType(EEventType.VIRTUAL).eventName("Jornadas de Inteligencia Artificial").startDate(LocalDate.of(2025, 5, 20)).endDate(LocalDate.of(2025, 5, 22)).eventPlace("Plataforma Zoom").eventDescription("Difundir conocimientos sobre IA y Machine Learning").build());
-        event3 = eventRepository.save(Event.builder().eventType(EEventType.FISICO).eventName("Simposio de Ciberseguridad").startDate(LocalDate.of(2025, 6, 10)).endDate(LocalDate.of(2025, 6, 11)).eventPlace("Centro de Convenciones").eventDescription("Abordar temas de seguridad informatica y proteccion de datos").build());
-        event4 = eventRepository.save(Event.builder().eventType(EEventType.VIRTUAL).eventName("Conferencia de Desarrollo Web Moderno").startDate(LocalDate.of(2025, 8, 5)).endDate(LocalDate.of(2025, 8, 6)).eventPlace("Google Meet").eventDescription("Explorar frameworks y tecnologias web actuales").build());
-        event5 = eventRepository.save(Event.builder().eventType(EEventType.FISICO).eventName("Foro de Emprendimiento Tecnologico").startDate(LocalDate.of(2025, 9, 18)).endDate(LocalDate.of(2025, 9, 19)).eventPlace("Sala de Usos Multiples").eventDescription("Promover el emprendimiento e innovacion tecnologica").build());
+        event1 = eventRepository.save(Event.builder().eventType(EEventType.FISICO).eventName("Congreso Internacional de Ingenieria de Software").startDate(LocalDate.of(2025, Month.MARCH, 15)).endDate(LocalDate.of(2025, Month.MARCH, 17)).eventPlace("Auditorio Principal, Campus Central").eventDescription("Compartir avances en el desarrollo de software y metodologias agiles").build());
+        event2 = eventRepository.save(Event.builder().eventType(EEventType.VIRTUAL).eventName("Jornadas de Inteligencia Artificial").startDate(LocalDate.of(2025, Month.MAY, 20)).endDate(LocalDate.of(2025, Month.MAY, 22)).eventPlace("Plataforma Zoom").eventDescription("Difundir conocimientos sobre IA y Machine Learning").build());
+        event3 = eventRepository.save(Event.builder().eventType(EEventType.FISICO).eventName("Simposio de Ciberseguridad").startDate(LocalDate.of(2025, Month.JUNE, 10)).endDate(LocalDate.of(2025, Month.JUNE, 11)).eventPlace("Centro de Convenciones").eventDescription("Abordar temas de seguridad informatica y proteccion de datos").build());
+        event4 = eventRepository.save(Event.builder().eventType(EEventType.VIRTUAL).eventName("Conferencia de Desarrollo Web Moderno").startDate(LocalDate.of(2025, Month.AUGUST, 5)).endDate(LocalDate.of(2025, Month.AUGUST, 6)).eventPlace("Google Meet").eventDescription("Explorar frameworks y tecnologias web actuales").build());
+        event5 = eventRepository.save(Event.builder().eventType(EEventType.FISICO).eventName("Foro de Emprendimiento Tecnologico").startDate(LocalDate.of(2025, Month.SEPTEMBER, 18)).endDate(LocalDate.of(2025, Month.SEPTEMBER, 19)).eventPlace("Sala de Usos Multiples").eventDescription("Promover el emprendimiento e innovacion tecnologica").build());
         LOG.info("Eventos creados");
     }
 
     private void seedActivities() {
         if (activityRepository.count() > 0) return;
-        activity1 = activityRepository.save(Activity.builder().event(event1).activityName("Ponencia: Metodologias Agiles").activityDescription("Presentar las mejores practicas en Scrum y Kanban").startDate(LocalDate.of(2025, 3, 15)).endDate(LocalDate.of(2025, 3, 15)).activityPlace("Sala A").build());
-        activity2 = activityRepository.save(Activity.builder().event(event1).activityName("Taller: Git Avanzado").activityDescription("Ensenar tecnicas avanzadas de control de versiones").startDate(LocalDate.of(2025, 3, 16)).endDate(LocalDate.of(2025, 3, 16)).activityPlace("Laboratorio 1").build());
-        activity3 = activityRepository.save(Activity.builder().event(event1).activityName("Panel: Futuro del Software").activityDescription("Discutir tendencias y desafios de la ingenieria de software").startDate(LocalDate.of(2025, 3, 17)).endDate(LocalDate.of(2025, 3, 17)).activityPlace("Auditorio").build());
-        activity4 = activityRepository.save(Activity.builder().event(event2).activityName("Conferencia: Redes Neuronales").activityDescription("Introduccion a deep learning").startDate(LocalDate.of(2025, 5, 20)).endDate(LocalDate.of(2025, 5, 20)).activityPlace("Plataforma Virtual").build());
-        activity5 = activityRepository.save(Activity.builder().event(event2).activityName("Taller: Python para IA").activityDescription("Practica con librerias de machine learning").startDate(LocalDate.of(2025, 5, 21)).endDate(LocalDate.of(2025, 5, 21)).activityPlace("Plataforma Virtual").build());
-        activity6 = activityRepository.save(Activity.builder().event(event3).activityName("Ponencia: Ethical Hacking").activityDescription("Tecnicas de pentesting etico").startDate(LocalDate.of(2025, 6, 10)).endDate(LocalDate.of(2025, 6, 10)).activityPlace("Sala B").build());
-        activity7 = activityRepository.save(Activity.builder().event(event3).activityName("Workshop: Seguridad en la Nube").activityDescription("Proteccion de infraestructuras cloud").startDate(LocalDate.of(2025, 6, 11)).endDate(LocalDate.of(2025, 6, 11)).activityPlace("Sala C").build());
-        activity8 = activityRepository.save(Activity.builder().event(event4).activityName("Conferencia: React y Next.js").activityDescription("Desarrollo de aplicaciones modernas").startDate(LocalDate.of(2025, 8, 5)).endDate(LocalDate.of(2025, 8, 5)).activityPlace("Google Meet").build());
-        activity9 = activityRepository.save(Activity.builder().event(event5).activityName("Panel: Startups Tech").activityDescription("Experiencias de emprendedores exitosos").startDate(LocalDate.of(2025, 9, 18)).endDate(LocalDate.of(2025, 9, 18)).activityPlace("Sala Principal").build());
+        activityRepository.save(Activity.builder().event(event1).activityName("Ponencia: Metodologias Agiles").activityDescription("Presentar las mejores practicas en Scrum y Kanban").startDate(LocalDate.of(2025, Month.MARCH, 15)).endDate(LocalDate.of(2025, Month.MARCH, 15)).activityPlace("Sala A").build());
+        activityRepository.save(Activity.builder().event(event1).activityName("Taller: Git Avanzado").activityDescription("Ensenar tecnicas avanzadas de control de versiones").startDate(LocalDate.of(2025, Month.MARCH, 16)).endDate(LocalDate.of(2025, Month.MARCH, 16)).activityPlace("Laboratorio 1").build());
+        activityRepository.save(Activity.builder().event(event1).activityName("Panel: Futuro del Software").activityDescription("Discutir tendencias y desafios de la ingenieria de software").startDate(LocalDate.of(2025, Month.MARCH, 17)).endDate(LocalDate.of(2025, Month.MARCH, 17)).activityPlace("Auditorio").build());
+        activityRepository.save(Activity.builder().event(event2).activityName("Conferencia: Redes Neuronales").activityDescription("Introduccion a deep learning").startDate(LocalDate.of(2025, Month.MAY, 20)).endDate(LocalDate.of(2025, Month.MAY, 20)).activityPlace("Plataforma Virtual").build());
+        activityRepository.save(Activity.builder().event(event2).activityName("Taller: Python para IA").activityDescription("Practica con librerias de machine learning").startDate(LocalDate.of(2025, Month.MAY, 21)).endDate(LocalDate.of(2025, Month.MAY, 21)).activityPlace("Plataforma Virtual").build());
+        activityRepository.save(Activity.builder().event(event3).activityName("Ponencia: Ethical Hacking").activityDescription("Tecnicas de pentesting etico").startDate(LocalDate.of(2025, Month.JUNE, 10)).endDate(LocalDate.of(2025, Month.JUNE, 10)).activityPlace("Sala B").build());
+        activityRepository.save(Activity.builder().event(event3).activityName("Workshop: Seguridad en la Nube").activityDescription("Proteccion de infraestructuras cloud").startDate(LocalDate.of(2025, Month.JUNE, 11)).endDate(LocalDate.of(2025, Month.JUNE, 11)).activityPlace("Sala C").build());
+        activityRepository.save(Activity.builder().event(event4).activityName("Conferencia: React y Next.js").activityDescription("Desarrollo de aplicaciones modernas").startDate(LocalDate.of(2025, Month.AUGUST, 5)).endDate(LocalDate.of(2025, Month.AUGUST, 5)).activityPlace("Google Meet").build());
+        activityRepository.save(Activity.builder().event(event5).activityName("Panel: Startups Tech").activityDescription("Experiencias de emprendedores exitosos").startDate(LocalDate.of(2025, Month.SEPTEMBER, 18)).endDate(LocalDate.of(2025, Month.SEPTEMBER, 18)).activityPlace("Sala Principal").build());
         LOG.info("Actividades creadas");
     }
 
