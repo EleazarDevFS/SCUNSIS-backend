@@ -34,6 +34,11 @@ public class DataInitializer implements CommandLineRunner {
     private final IActivityRepository activityRepository;
     private final IProofRepository proofRepository;
 
+    private Sender sender1, sender2, sender3, sender4;
+    private Receiver receiver1, receiver2, receiver3, receiver4, receiver5, receiver6, receiver7, receiver8;
+    private Event event1, event2, event3, event4, event5;
+    private Activity activity1, activity2, activity3, activity4, activity5, activity6, activity7, activity8, activity9;
+
     @Override
     public void run(String... args) {
         seedUsers();
@@ -63,63 +68,63 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void seedSenders() {
-        if (senderRepository.existsById(1L)) return;
-        senderRepository.save(Sender.builder().senderId(1L).name("Licenciatura en Informatica").campus("Campus Central").build());
-        senderRepository.save(Sender.builder().senderId(2L).name("Coordinacion de Posgrado").campus("Campus Central").build());
-        senderRepository.save(Sender.builder().senderId(3L).name("Instituto de Investigacion").campus("Campus Sur").build());
-        senderRepository.save(Sender.builder().senderId(4L).name("Departamento de Extension Universitaria").campus("Campus Central").build());
+        if (senderRepository.count() > 0) return;
+        sender1 = senderRepository.save(Sender.builder().name("Licenciatura en Informatica").campus("Campus Central").build());
+        sender2 = senderRepository.save(Sender.builder().name("Coordinacion de Posgrado").campus("Campus Central").build());
+        sender3 = senderRepository.save(Sender.builder().name("Instituto de Investigacion").campus("Campus Sur").build());
+        sender4 = senderRepository.save(Sender.builder().name("Departamento de Extension Universitaria").campus("Campus Central").build());
         System.out.println("Emisores creados");
     }
 
     private void seedReceivers() {
-        if (receiverRepository.existsById(1L)) return;
-        receiverRepository.save(Receiver.builder().receiverId(1L).name("Juan").lastName("Perez").twoLastName("Garcia").phone("5551234567").email("juan.perez@example.com").academicGrade("Licenciatura").build());
-        receiverRepository.save(Receiver.builder().receiverId(2L).name("Maria").lastName("Lopez").twoLastName("Martinez").phone("5559876543").email("maria.lopez@example.com").academicGrade("Maestria").build());
-        receiverRepository.save(Receiver.builder().receiverId(3L).name("Carlos").lastName("Hernandez").twoLastName("Rodriguez").phone("5555551234").email("carlos.hernandez@example.com").academicGrade("Doctorado").build());
-        receiverRepository.save(Receiver.builder().receiverId(4L).name("Ana").lastName("Gonzalez").twoLastName("Sanchez").phone("5554443322").email("ana.gonzalez@example.com").academicGrade("Licenciatura").build());
-        receiverRepository.save(Receiver.builder().receiverId(5L).name("Luis").lastName("Ramirez").twoLastName("Torres").phone("5556667788").email("luis.ramirez@example.com").academicGrade("Ingenieria").build());
-        receiverRepository.save(Receiver.builder().receiverId(6L).name("Sofia").lastName("Flores").twoLastName("Cruz").phone("5557778899").email("sofia.flores@example.com").academicGrade("Maestria").build());
-        receiverRepository.save(Receiver.builder().receiverId(7L).name("Pedro").lastName("Morales").twoLastName("Vega").phone("5558889900").email("pedro.morales@example.com").academicGrade("Licenciatura").build());
-        receiverRepository.save(Receiver.builder().receiverId(8L).name("Laura").lastName("Jimenez").twoLastName("Mendoza").phone("5559990011").email("laura.jimenez@example.com").academicGrade("Especialidad").build());
+        if (receiverRepository.count() > 0) return;
+        receiver1 = receiverRepository.save(Receiver.builder().name("Juan").lastName("Perez").twoLastName("Garcia").phone("5551234567").email("juan.perez@example.com").academicGrade("Licenciatura").build());
+        receiver2 = receiverRepository.save(Receiver.builder().name("Maria").lastName("Lopez").twoLastName("Martinez").phone("5559876543").email("maria.lopez@example.com").academicGrade("Maestria").build());
+        receiver3 = receiverRepository.save(Receiver.builder().name("Carlos").lastName("Hernandez").twoLastName("Rodriguez").phone("5555551234").email("carlos.hernandez@example.com").academicGrade("Doctorado").build());
+        receiver4 = receiverRepository.save(Receiver.builder().name("Ana").lastName("Gonzalez").twoLastName("Sanchez").phone("5554443322").email("ana.gonzalez@example.com").academicGrade("Licenciatura").build());
+        receiver5 = receiverRepository.save(Receiver.builder().name("Luis").lastName("Ramirez").twoLastName("Torres").phone("5556667788").email("luis.ramirez@example.com").academicGrade("Ingenieria").build());
+        receiver6 = receiverRepository.save(Receiver.builder().name("Sofia").lastName("Flores").twoLastName("Cruz").phone("5557778899").email("sofia.flores@example.com").academicGrade("Maestria").build());
+        receiver7 = receiverRepository.save(Receiver.builder().name("Pedro").lastName("Morales").twoLastName("Vega").phone("5558889900").email("pedro.morales@example.com").academicGrade("Licenciatura").build());
+        receiver8 = receiverRepository.save(Receiver.builder().name("Laura").lastName("Jimenez").twoLastName("Mendoza").phone("5559990011").email("laura.jimenez@example.com").academicGrade("Especialidad").build());
         System.out.println("Receptores creados");
     }
 
     private void seedEvents() {
-        if (eventRepository.existsById(1L)) return;
-        eventRepository.save(Event.builder().eventId(1L).eventType(EEventType.FISICO).eventName("Congreso Internacional de Ingenieria de Software").startDate(LocalDate.of(2025, 3, 15)).endDate(LocalDate.of(2025, 3, 17)).eventPlace("Auditorio Principal, Campus Central").eventDescription("Compartir avances en el desarrollo de software y metodologias agiles").build());
-        eventRepository.save(Event.builder().eventId(2L).eventType(EEventType.VIRTUAL).eventName("Jornadas de Inteligencia Artificial").startDate(LocalDate.of(2025, 5, 20)).endDate(LocalDate.of(2025, 5, 22)).eventPlace("Plataforma Zoom").eventDescription("Difundir conocimientos sobre IA y Machine Learning").build());
-        eventRepository.save(Event.builder().eventId(3L).eventType(EEventType.FISICO).eventName("Simposio de Ciberseguridad").startDate(LocalDate.of(2025, 6, 10)).endDate(LocalDate.of(2025, 6, 11)).eventPlace("Centro de Convenciones").eventDescription("Abordar temas de seguridad informatica y proteccion de datos").build());
-        eventRepository.save(Event.builder().eventId(4L).eventType(EEventType.VIRTUAL).eventName("Conferencia de Desarrollo Web Moderno").startDate(LocalDate.of(2025, 8, 5)).endDate(LocalDate.of(2025, 8, 6)).eventPlace("Google Meet").eventDescription("Explorar frameworks y tecnologias web actuales").build());
-        eventRepository.save(Event.builder().eventId(5L).eventType(EEventType.FISICO).eventName("Foro de Emprendimiento Tecnologico").startDate(LocalDate.of(2025, 9, 18)).endDate(LocalDate.of(2025, 9, 19)).eventPlace("Sala de Usos Multiples").eventDescription("Promover el emprendimiento e innovacion tecnologica").build());
+        if (eventRepository.count() > 0) return;
+        event1 = eventRepository.save(Event.builder().eventType(EEventType.FISICO).eventName("Congreso Internacional de Ingenieria de Software").startDate(LocalDate.of(2025, 3, 15)).endDate(LocalDate.of(2025, 3, 17)).eventPlace("Auditorio Principal, Campus Central").eventDescription("Compartir avances en el desarrollo de software y metodologias agiles").build());
+        event2 = eventRepository.save(Event.builder().eventType(EEventType.VIRTUAL).eventName("Jornadas de Inteligencia Artificial").startDate(LocalDate.of(2025, 5, 20)).endDate(LocalDate.of(2025, 5, 22)).eventPlace("Plataforma Zoom").eventDescription("Difundir conocimientos sobre IA y Machine Learning").build());
+        event3 = eventRepository.save(Event.builder().eventType(EEventType.FISICO).eventName("Simposio de Ciberseguridad").startDate(LocalDate.of(2025, 6, 10)).endDate(LocalDate.of(2025, 6, 11)).eventPlace("Centro de Convenciones").eventDescription("Abordar temas de seguridad informatica y proteccion de datos").build());
+        event4 = eventRepository.save(Event.builder().eventType(EEventType.VIRTUAL).eventName("Conferencia de Desarrollo Web Moderno").startDate(LocalDate.of(2025, 8, 5)).endDate(LocalDate.of(2025, 8, 6)).eventPlace("Google Meet").eventDescription("Explorar frameworks y tecnologias web actuales").build());
+        event5 = eventRepository.save(Event.builder().eventType(EEventType.FISICO).eventName("Foro de Emprendimiento Tecnologico").startDate(LocalDate.of(2025, 9, 18)).endDate(LocalDate.of(2025, 9, 19)).eventPlace("Sala de Usos Multiples").eventDescription("Promover el emprendimiento e innovacion tecnologica").build());
         System.out.println("Eventos creados");
     }
 
     private void seedActivities() {
-        if (activityRepository.existsById(1L)) return;
-        activityRepository.save(Activity.builder().activityId(1L).event(eventRepository.getReferenceById(1L)).activityName("Ponencia: Metodologias Agiles").activityDescription("Presentar las mejores practicas en Scrum y Kanban").startDate(LocalDate.of(2025, 3, 15)).endDate(LocalDate.of(2025, 3, 15)).activityPlace("Sala A").build());
-        activityRepository.save(Activity.builder().activityId(2L).event(eventRepository.getReferenceById(1L)).activityName("Taller: Git Avanzado").activityDescription("Ensenar tecnicas avanzadas de control de versiones").startDate(LocalDate.of(2025, 3, 16)).endDate(LocalDate.of(2025, 3, 16)).activityPlace("Laboratorio 1").build());
-        activityRepository.save(Activity.builder().activityId(3L).event(eventRepository.getReferenceById(1L)).activityName("Panel: Futuro del Software").activityDescription("Discutir tendencias y desafios de la ingenieria de software").startDate(LocalDate.of(2025, 3, 17)).endDate(LocalDate.of(2025, 3, 17)).activityPlace("Auditorio").build());
-        activityRepository.save(Activity.builder().activityId(4L).event(eventRepository.getReferenceById(2L)).activityName("Conferencia: Redes Neuronales").activityDescription("Introduccion a deep learning").startDate(LocalDate.of(2025, 5, 20)).endDate(LocalDate.of(2025, 5, 20)).activityPlace("Plataforma Virtual").build());
-        activityRepository.save(Activity.builder().activityId(5L).event(eventRepository.getReferenceById(2L)).activityName("Taller: Python para IA").activityDescription("Practica con librerias de machine learning").startDate(LocalDate.of(2025, 5, 21)).endDate(LocalDate.of(2025, 5, 21)).activityPlace("Plataforma Virtual").build());
-        activityRepository.save(Activity.builder().activityId(6L).event(eventRepository.getReferenceById(3L)).activityName("Ponencia: Ethical Hacking").activityDescription("Tecnicas de pentesting etico").startDate(LocalDate.of(2025, 6, 10)).endDate(LocalDate.of(2025, 6, 10)).activityPlace("Sala B").build());
-        activityRepository.save(Activity.builder().activityId(7L).event(eventRepository.getReferenceById(3L)).activityName("Workshop: Seguridad en la Nube").activityDescription("Proteccion de infraestructuras cloud").startDate(LocalDate.of(2025, 6, 11)).endDate(LocalDate.of(2025, 6, 11)).activityPlace("Sala C").build());
-        activityRepository.save(Activity.builder().activityId(8L).event(eventRepository.getReferenceById(4L)).activityName("Conferencia: React y Next.js").activityDescription("Desarrollo de aplicaciones modernas").startDate(LocalDate.of(2025, 8, 5)).endDate(LocalDate.of(2025, 8, 5)).activityPlace("Google Meet").build());
-        activityRepository.save(Activity.builder().activityId(9L).event(eventRepository.getReferenceById(5L)).activityName("Panel: Startups Tech").activityDescription("Experiencias de emprendedores exitosos").startDate(LocalDate.of(2025, 9, 18)).endDate(LocalDate.of(2025, 9, 18)).activityPlace("Sala Principal").build());
+        if (activityRepository.count() > 0) return;
+        activity1 = activityRepository.save(Activity.builder().event(event1).activityName("Ponencia: Metodologias Agiles").activityDescription("Presentar las mejores practicas en Scrum y Kanban").startDate(LocalDate.of(2025, 3, 15)).endDate(LocalDate.of(2025, 3, 15)).activityPlace("Sala A").build());
+        activity2 = activityRepository.save(Activity.builder().event(event1).activityName("Taller: Git Avanzado").activityDescription("Ensenar tecnicas avanzadas de control de versiones").startDate(LocalDate.of(2025, 3, 16)).endDate(LocalDate.of(2025, 3, 16)).activityPlace("Laboratorio 1").build());
+        activity3 = activityRepository.save(Activity.builder().event(event1).activityName("Panel: Futuro del Software").activityDescription("Discutir tendencias y desafios de la ingenieria de software").startDate(LocalDate.of(2025, 3, 17)).endDate(LocalDate.of(2025, 3, 17)).activityPlace("Auditorio").build());
+        activity4 = activityRepository.save(Activity.builder().event(event2).activityName("Conferencia: Redes Neuronales").activityDescription("Introduccion a deep learning").startDate(LocalDate.of(2025, 5, 20)).endDate(LocalDate.of(2025, 5, 20)).activityPlace("Plataforma Virtual").build());
+        activity5 = activityRepository.save(Activity.builder().event(event2).activityName("Taller: Python para IA").activityDescription("Practica con librerias de machine learning").startDate(LocalDate.of(2025, 5, 21)).endDate(LocalDate.of(2025, 5, 21)).activityPlace("Plataforma Virtual").build());
+        activity6 = activityRepository.save(Activity.builder().event(event3).activityName("Ponencia: Ethical Hacking").activityDescription("Tecnicas de pentesting etico").startDate(LocalDate.of(2025, 6, 10)).endDate(LocalDate.of(2025, 6, 10)).activityPlace("Sala B").build());
+        activity7 = activityRepository.save(Activity.builder().event(event3).activityName("Workshop: Seguridad en la Nube").activityDescription("Proteccion de infraestructuras cloud").startDate(LocalDate.of(2025, 6, 11)).endDate(LocalDate.of(2025, 6, 11)).activityPlace("Sala C").build());
+        activity8 = activityRepository.save(Activity.builder().event(event4).activityName("Conferencia: React y Next.js").activityDescription("Desarrollo de aplicaciones modernas").startDate(LocalDate.of(2025, 8, 5)).endDate(LocalDate.of(2025, 8, 5)).activityPlace("Google Meet").build());
+        activity9 = activityRepository.save(Activity.builder().event(event5).activityName("Panel: Startups Tech").activityDescription("Experiencias de emprendedores exitosos").startDate(LocalDate.of(2025, 9, 18)).endDate(LocalDate.of(2025, 9, 18)).activityPlace("Sala Principal").build());
         System.out.println("Actividades creadas");
     }
 
     private void seedProofs() {
-        if (proofRepository.existsById("PON-2025-0001")) return;
-        proofRepository.save(Proof.builder().folio("PON-2025-0001").sender(senderRepository.getReferenceById(1L)).receiver(receiverRepository.getReferenceById(1L)).activity(activityRepository.getReferenceById(1L)).event(eventRepository.getReferenceById(1L)).role(EParticipationRole.PONENTE).date(LocalDate.of(2025, 3, 17)).build());
-        proofRepository.save(Proof.builder().folio("PON-2025-0002").sender(senderRepository.getReferenceById(1L)).receiver(receiverRepository.getReferenceById(3L)).activity(activityRepository.getReferenceById(3L)).event(eventRepository.getReferenceById(1L)).role(EParticipationRole.PONENTE).date(LocalDate.of(2025, 3, 17)).build());
-        proofRepository.save(Proof.builder().folio("PAR-2025-0001").sender(senderRepository.getReferenceById(1L)).receiver(receiverRepository.getReferenceById(2L)).activity(activityRepository.getReferenceById(2L)).event(eventRepository.getReferenceById(1L)).role(EParticipationRole.PARTICIPANTE).date(LocalDate.of(2025, 3, 17)).build());
-        proofRepository.save(Proof.builder().folio("PAR-2025-0002").sender(senderRepository.getReferenceById(1L)).receiver(receiverRepository.getReferenceById(4L)).activity(activityRepository.getReferenceById(1L)).event(eventRepository.getReferenceById(1L)).role(EParticipationRole.PARTICIPANTE).date(LocalDate.of(2025, 3, 17)).build());
-        proofRepository.save(Proof.builder().folio("PAR-2025-0003").sender(senderRepository.getReferenceById(1L)).receiver(receiverRepository.getReferenceById(5L)).activity(activityRepository.getReferenceById(2L)).event(eventRepository.getReferenceById(1L)).role(EParticipationRole.PARTICIPANTE).date(LocalDate.of(2025, 3, 17)).build());
-        proofRepository.save(Proof.builder().folio("PON-2025-0003").sender(senderRepository.getReferenceById(4L)).receiver(receiverRepository.getReferenceById(6L)).activity(activityRepository.getReferenceById(6L)).event(eventRepository.getReferenceById(3L)).role(EParticipationRole.PONENTE).date(LocalDate.of(2025, 6, 11)).build());
-        proofRepository.save(Proof.builder().folio("PAR-2025-0004").sender(senderRepository.getReferenceById(4L)).receiver(receiverRepository.getReferenceById(7L)).activity(activityRepository.getReferenceById(7L)).event(eventRepository.getReferenceById(3L)).role(EParticipationRole.PARTICIPANTE).date(LocalDate.of(2025, 6, 11)).build());
-        proofRepository.save(Proof.builder().folio("ORG-2025-0001").sender(senderRepository.getReferenceById(3L)).receiver(receiverRepository.getReferenceById(8L)).activity(activityRepository.getReferenceById(8L)).event(eventRepository.getReferenceById(4L)).role(EParticipationRole.ORGANIZADOR).date(LocalDate.of(2025, 8, 6)).build());
-        proofRepository.save(Proof.builder().folio("REC-2025-0001").sender(senderRepository.getReferenceById(2L)).receiver(receiverRepository.getReferenceById(1L)).activity(activityRepository.getReferenceById(9L)).event(eventRepository.getReferenceById(5L)).role(EParticipationRole.RECONOCIMIENTO).date(LocalDate.of(2025, 9, 19)).build());
-        proofRepository.save(Proof.builder().folio("REC-2025-0002").sender(senderRepository.getReferenceById(2L)).receiver(receiverRepository.getReferenceById(4L)).activity(activityRepository.getReferenceById(9L)).event(eventRepository.getReferenceById(5L)).role(EParticipationRole.RECONOCIMIENTO).date(LocalDate.of(2025, 9, 19)).build());
+        if (proofRepository.count() > 0) return;
+        proofRepository.save(Proof.builder().folio("PON-2025-0001").sender(sender1).receiver(receiver1).activity(activity1).event(event1).role(EParticipationRole.PONENTE).date(LocalDate.of(2025, 3, 17)).build());
+        proofRepository.save(Proof.builder().folio("PON-2025-0002").sender(sender1).receiver(receiver3).activity(activity3).event(event1).role(EParticipationRole.PONENTE).date(LocalDate.of(2025, 3, 17)).build());
+        proofRepository.save(Proof.builder().folio("PAR-2025-0001").sender(sender1).receiver(receiver2).activity(activity2).event(event1).role(EParticipationRole.PARTICIPANTE).date(LocalDate.of(2025, 3, 17)).build());
+        proofRepository.save(Proof.builder().folio("PAR-2025-0002").sender(sender1).receiver(receiver4).activity(activity1).event(event1).role(EParticipationRole.PARTICIPANTE).date(LocalDate.of(2025, 3, 17)).build());
+        proofRepository.save(Proof.builder().folio("PAR-2025-0003").sender(sender1).receiver(receiver5).activity(activity2).event(event1).role(EParticipationRole.PARTICIPANTE).date(LocalDate.of(2025, 3, 17)).build());
+        proofRepository.save(Proof.builder().folio("PON-2025-0003").sender(sender4).receiver(receiver6).activity(activity6).event(event3).role(EParticipationRole.PONENTE).date(LocalDate.of(2025, 6, 11)).build());
+        proofRepository.save(Proof.builder().folio("PAR-2025-0004").sender(sender4).receiver(receiver7).activity(activity7).event(event3).role(EParticipationRole.PARTICIPANTE).date(LocalDate.of(2025, 6, 11)).build());
+        proofRepository.save(Proof.builder().folio("ORG-2025-0001").sender(sender3).receiver(receiver8).activity(activity8).event(event4).role(EParticipationRole.ORGANIZADOR).date(LocalDate.of(2025, 8, 6)).build());
+        proofRepository.save(Proof.builder().folio("REC-2025-0001").sender(sender2).receiver(receiver1).activity(activity9).event(event5).role(EParticipationRole.RECONOCIMIENTO).date(LocalDate.of(2025, 9, 19)).build());
+        proofRepository.save(Proof.builder().folio("REC-2025-0002").sender(sender2).receiver(receiver4).activity(activity9).event(event5).role(EParticipationRole.RECONOCIMIENTO).date(LocalDate.of(2025, 9, 19)).build());
         System.out.println("Constancias creadas");
     }
 }

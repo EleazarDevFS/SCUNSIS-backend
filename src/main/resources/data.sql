@@ -1,60 +1,61 @@
 -- Seed data for SCUNSIS
 
 -- Emisores
-INSERT INTO emisor (id_emisor, nombre, sede_campus) VALUES
-(1, 'Licenciatura en Informatica', 'Campus Central'),
-(2, 'Coordinacion de Posgrado', 'Campus Central'),
-(3, 'Instituto de Investigacion', 'Campus Sur'),
-(4, 'Departamento de Extension Universitaria', 'Campus Central');
-
-SELECT setval('emisor_id_emisor_seq', (SELECT MAX(id_emisor) FROM emisor));
-
--- Receptores
-INSERT INTO receptor (id_receptor, nombre, primer_apellido, segundo_apellido, telefono, email, grado_academico) VALUES
-(1, 'Juan', 'Perez', 'Garcia', '5551234567', 'juan.perez@example.com', 'Licenciatura'),
-(2, 'Maria', 'Lopez', 'Martinez', '5559876543', 'maria.lopez@example.com', 'Maestria'),
-(3, 'Carlos', 'Hernandez', 'Rodriguez', '5555551234', 'carlos.hernandez@example.com', 'Doctorado'),
-(4, 'Ana', 'Gonzalez', 'Sanchez', '5554443322', 'ana.gonzalez@example.com', 'Licenciatura'),
-(5, 'Luis', 'Ramirez', 'Torres', '5556667788', 'luis.ramirez@example.com', 'Ingenieria'),
-(6, 'Sofia', 'Flores', 'Cruz', '5557778899', 'sofia.flores@example.com', 'Maestria'),
-(7, 'Pedro', 'Morales', 'Vega', '5558889900', 'pedro.morales@example.com', 'Licenciatura'),
-(8, 'Laura', 'Jimenez', 'Mendoza', '5559990011', 'laura.jimenez@example.com', 'Especialidad');
-
-SELECT setval('receptor_id_receptor_seq', (SELECT MAX(id_receptor) FROM receptor));
-
--- Eventos
-INSERT INTO evento (id_evento, tipo, nombre_evento, fecha_inicio, fecha_fin, lugar_evento, objetivo_evento) VALUES
-(1, 'FISICO', 'Congreso Internacional de Ingenieria de Software', '2025-03-15', '2025-03-17', 'Auditorio Principal, Campus Central', 'Compartir avances en el desarrollo de software y metodologias agiles'),
-(2, 'VIRTUAL', 'Jornadas de Inteligencia Artificial', '2025-05-20', '2025-05-22', 'Plataforma Zoom', 'Difundir conocimientos sobre IA y Machine Learning'),
-(3, 'FISICO', 'Simposio de Ciberseguridad', '2025-06-10', '2025-06-11', 'Centro de Convenciones', 'Abordar temas de seguridad informatica y proteccion de datos'),
-(4, 'VIRTUAL', 'Conferencia de Desarrollo Web Moderno', '2025-08-05', '2025-08-06', 'Google Meet', 'Explorar frameworks y tecnologias web actuales'),
-(5, 'FISICO', 'Foro de Emprendimiento Tecnologico', '2025-09-18', '2025-09-19', 'Sala de Usos Multiples', 'Promover el emprendimiento e innovacion tecnologica');
-
-SELECT setval('evento_id_evento_seq', (SELECT MAX(id_evento) FROM evento));
-
--- Actividades
-INSERT INTO actividad (id_actividad, fk_evento, nombre_actividad, objetivo_actividad, fecha_inicio, fecha_fin, lugar_actividad) VALUES
-(1, 1, 'Ponencia: Metodologias Agiles', 'Presentar las mejores practicas en Scrum y Kanban', '2025-03-15', '2025-03-15', 'Sala A'),
-(2, 1, 'Taller: Git Avanzado', 'Ensenar tecnicas avanzadas de control de versiones', '2025-03-16', '2025-03-16', 'Laboratorio 1'),
-(3, 1, 'Panel: Futuro del Software', 'Discutir tendencias y desafios de la ingenieria de software', '2025-03-17', '2025-03-17', 'Auditorio'),
-(4, 2, 'Conferencia: Redes Neuronales', 'Introduccion a deep learning', '2025-05-20', '2025-05-20', 'Plataforma Virtual'),
-(5, 2, 'Taller: Python para IA', 'Practica con librerias de machine learning', '2025-05-21', '2025-05-21', 'Plataforma Virtual'),
-(6, 3, 'Ponencia: Ethical Hacking', 'Tecnicas de pentesting etico', '2025-06-10', '2025-06-10', 'Sala B'),
-(7, 3, 'Workshop: Seguridad en la Nube', 'Proteccion de infraestructuras cloud', '2025-06-11', '2025-06-11', 'Sala C'),
-(8, 4, 'Conferencia: React y Next.js', 'Desarrollo de aplicaciones modernas', '2025-08-05', '2025-08-05', 'Google Meet'),
-(9, 5, 'Panel: Startups Tech', 'Experiencias de emprendedores exitosos', '2025-09-18', '2025-09-18', 'Sala Principal');
-
-SELECT setval('actividad_id_actividad_seq', (SELECT MAX(id_actividad) FROM actividad));
-
--- Constancias
-INSERT INTO constancia (folio, fk_id_emisor, fk_id_receptor, fk_id_actividad, fk_id_evento, rol, fecha) VALUES
-('PON-2025-0001', 1, 1, 1, 1, 'PONENTE', '2025-03-17'),
-('PON-2025-0002', 1, 3, 3, 1, 'PONENTE', '2025-03-17'),
-('PAR-2025-0001', 1, 2, 2, 1, 'PARTICIPANTE', '2025-03-17'),
-('PAR-2025-0002', 1, 4, 1, 1, 'PARTICIPANTE', '2025-03-17'),
-('PAR-2025-0003', 1, 5, 2, 1, 'PARTICIPANTE', '2025-03-17'),
-('PON-2025-0003', 4, 6, 6, 3, 'PONENTE', '2025-06-11'),
-('PAR-2025-0004', 4, 7, 7, 3, 'PARTICIPANTE', '2025-06-11'),
-('ORG-2025-0001', 3, 8, 8, 4, 'ORGANIZADOR', '2025-08-06'),
-('REC-2025-0001', 2, 1, 9, 5, 'RECONOCIMIENTO', '2025-09-19'),
-('REC-2025-0002', 2, 4, 9, 5, 'RECONOCIMIENTO', '2025-09-19');
+--INSERT INTO emisor (id_emisor, nombre, sede_campus) VALUES
+--(1, 'Licenciatura en Informatica', 'Campus Central'),
+--(2, 'Coordinacion de Posgrado', 'Campus Central'),
+--(3, 'Instituto de Investigacion', 'Campus Sur'),
+--(4, 'Departamento de Extension Universitaria', 'Campus Central');
+--
+--SELECT setval('emisor_id_emisor_seq', (SELECT MAX(id_emisor) FROM emisor));
+--
+---- Receptores
+--INSERT INTO receptor (id_receptor, nombre, primer_apellido, segundo_apellido, telefono, email, grado_academico) VALUES
+--(1, 'Juan', 'Perez', 'Garcia', '5551234567', 'juan.perez@example.com', 'Licenciatura'),
+--(2, 'Maria', 'Lopez', 'Martinez', '5559876543', 'maria.lopez@example.com', 'Maestria'),
+--(3, 'Carlos', 'Hernandez', 'Rodriguez', '5555551234', 'carlos.hernandez@example.com', 'Doctorado'),
+--(4, 'Ana', 'Gonzalez', 'Sanchez', '5554443322', 'ana.gonzalez@example.com', 'Licenciatura'),
+--(5, 'Luis', 'Ramirez', 'Torres', '5556667788', 'luis.ramirez@example.com', 'Ingenieria'),
+--(6, 'Sofia', 'Flores', 'Cruz', '5557778899', 'sofia.flores@example.com', 'Maestria'),
+--(7, 'Pedro', 'Morales', 'Vega', '5558889900', 'pedro.morales@example.com', 'Licenciatura'),
+--(8, 'Laura', 'Jimenez', 'Mendoza', '5559990011', 'laura.jimenez@example.com', 'Especialidad');
+--
+--SELECT setval('receptor_id_receptor_seq', (SELECT MAX(id_receptor) FROM receptor));
+--
+---- Eventos
+--INSERT INTO evento (id_evento, tipo, nombre_evento, fecha_inicio, fecha_fin, lugar_evento, objetivo_evento) VALUES
+--(1, 'FISICO', 'Congreso Internacional de Ingenieria de Software', '2025-03-15', '2025-03-17', 'Auditorio Principal, Campus Central', 'Compartir avances en el desarrollo de software y metodologias agiles'),
+--(2, 'VIRTUAL', 'Jornadas de Inteligencia Artificial', '2025-05-20', '2025-05-22', 'Plataforma Zoom', 'Difundir conocimientos sobre IA y Machine Learning'),
+--(3, 'FISICO', 'Simposio de Ciberseguridad', '2025-06-10', '2025-06-11', 'Centro de Convenciones', 'Abordar temas de seguridad informatica y proteccion de datos'),
+--(4, 'VIRTUAL', 'Conferencia de Desarrollo Web Moderno', '2025-08-05', '2025-08-06', 'Google Meet', 'Explorar frameworks y tecnologias web actuales'),
+--(5, 'FISICO', 'Foro de Emprendimiento Tecnologico', '2025-09-18', '2025-09-19', 'Sala de Usos Multiples', 'Promover el emprendimiento e innovacion tecnologica');
+--
+--SELECT setval('evento_id_evento_seq', (SELECT MAX(id_evento) FROM evento));
+--
+---- Actividades
+--INSERT INTO actividad (id_actividad, fk_evento, nombre_actividad, objetivo_actividad, fecha_inicio, fecha_fin, lugar_actividad) VALUES
+--(1, 1, 'Ponencia: Metodologias Agiles', 'Presentar las mejores practicas en Scrum y Kanban', '2025-03-15', '2025-03-15', 'Sala A'),
+--(2, 1, 'Taller: Git Avanzado', 'Ensenar tecnicas avanzadas de control de versiones', '2025-03-16', '2025-03-16', 'Laboratorio 1'),
+--(3, 1, 'Panel: Futuro del Software', 'Discutir tendencias y desafios de la ingenieria de software', '2025-03-17', '2025-03-17', 'Auditorio'),
+--(4, 2, 'Conferencia: Redes Neuronales', 'Introduccion a deep learning', '2025-05-20', '2025-05-20', 'Plataforma Virtual'),
+--(5, 2, 'Taller: Python para IA', 'Practica con librerias de machine learning', '2025-05-21', '2025-05-21', 'Plataforma Virtual'),
+--(6, 3, 'Ponencia: Ethical Hacking', 'Tecnicas de pentesting etico', '2025-06-10', '2025-06-10', 'Sala B'),
+--(7, 3, 'Workshop: Seguridad en la Nube', 'Proteccion de infraestructuras cloud', '2025-06-11', '2025-06-11', 'Sala C'),
+--(8, 4, 'Conferencia: React y Next.js', 'Desarrollo de aplicaciones modernas', '2025-08-05', '2025-08-05', 'Google Meet'),
+--(9, 5, 'Panel: Startups Tech', 'Experiencias de emprendedores exitosos', '2025-09-18', '2025-09-18', 'Sala Principal');
+--
+--SELECT setval('actividad_id_actividad_seq', (SELECT MAX(id_actividad) FROM actividad));
+--
+---- Constancias
+--INSERT INTO constancia (folio, fk_id_emisor, fk_id_receptor, fk_id_actividad, fk_id_evento, rol, fecha) VALUES
+--('PON-2025-0001', 1, 1, 1, 1, 'PONENTE', '2025-03-17'),
+--('PON-2025-0002', 1, 3, 3, 1, 'PONENTE', '2025-03-17'),
+--('PAR-2025-0001', 1, 2, 2, 1, 'PARTICIPANTE', '2025-03-17'),
+--('PAR-2025-0002', 1, 4, 1, 1, 'PARTICIPANTE', '2025-03-17'),
+--('PAR-2025-0003', 1, 5, 2, 1, 'PARTICIPANTE', '2025-03-17'),
+--('PON-2025-0003', 4, 6, 6, 3, 'PONENTE', '2025-06-11'),
+--('PAR-2025-0004', 4, 7, 7, 3, 'PARTICIPANTE', '2025-06-11'),
+--('ORG-2025-0001', 3, 8, 8, 4, 'ORGANIZADOR', '2025-08-06'),
+--('REC-2025-0001', 2, 1, 9, 5, 'RECONOCIMIENTO', '2025-09-19'),
+--('REC-2025-0002', 2, 4, 9, 5, 'RECONOCIMIENTO', '2025-09-19');
+--
