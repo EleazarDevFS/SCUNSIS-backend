@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/scunsis/api/v1/event")
+@RequestMapping("/api/v1/event")
 @RequiredArgsConstructor
 public class EventController {
 
@@ -21,6 +21,11 @@ public class EventController {
     public ResponseEntity<Void> createEvent(@RequestBody EventRequest request) {
         eventService.createEvent(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PutMapping("/{eventId}")
+    public ResponseEntity<EventResponse> updateEvent(@PathVariable Long eventId, @RequestBody EventRequest request) {
+        return ResponseEntity.ok(eventService.updateEvent(eventId, request));
     }
 
     @DeleteMapping("/{eventId}")

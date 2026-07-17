@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/scunsis/api/v1/receiver")
+@RequestMapping("/api/v1/receiver")
 @RequiredArgsConstructor
 public class ReceiverController {
 
@@ -30,6 +30,11 @@ public class ReceiverController {
     @PostMapping
     public ResponseEntity<ReceiverResponse> createReceiver(@RequestBody ReceiverRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(receiverService.createReceiver(request));
+    }
+
+    @PutMapping("/{receiverId}")
+    public ResponseEntity<ReceiverResponse> updateReceiver(@PathVariable long receiverId, @RequestBody ReceiverRequest request) {
+        return ResponseEntity.ok(receiverService.updateReceiver(receiverId, request));
     }
 
     @DeleteMapping("/{receiverId}")

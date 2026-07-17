@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/scunsis/api/v1/activity")
+@RequestMapping("/api/v1/activity")
 @RequiredArgsConstructor
 public class ActivityController {
 
@@ -31,6 +31,11 @@ public class ActivityController {
     public ResponseEntity<Void> createActivity(@RequestBody ActivityRequest request) {
         activityService.createActivity(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PutMapping("/{activityId}")
+    public ResponseEntity<ActivityResponse> updateActivity(@PathVariable long activityId, @RequestBody ActivityRequest request) {
+        return ResponseEntity.ok(activityService.updateActivity(activityId, request));
     }
 
     @DeleteMapping("/{activityId}")

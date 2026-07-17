@@ -51,4 +51,18 @@ public class SenderService {
         }
         senderRepository.save(senderMapper.toEntity(request));
     }
+
+    @Transactional
+    public SenderResponse updateSender(long senderId, SenderRequest request) {
+        Sender sender = senderRepository.findById(senderId)
+                .orElseThrow(() -> new AppException("Emisor no encontrado con id: " + senderId, HttpStatus.NOT_FOUND));
+        if (request.getName() != null && !request.getName().isBlank()) {
+            sender.setName(request.getName().trim());
+        }
+        if (request.getCampus() != null) {
+            sender.setCampus(request.getCampus().trim());
+        }
+        sender = senderRepository.save(sender);
+        return senderMapper.toDto(sender);
+    }
 }
