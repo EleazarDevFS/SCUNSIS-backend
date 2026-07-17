@@ -4,13 +4,17 @@ import com.unsis.scunsis_backend.dto.request.receiver.ReceiverRequest;
 import com.unsis.scunsis_backend.dto.response.receiver.ReceiverResponse;
 import com.unsis.scunsis_backend.exception.AppException;
 import com.unsis.scunsis_backend.mapper.receiver.ReceiverMapper;
+import com.unsis.scunsis_backend.model.enums.EParticipationRole;
 import com.unsis.scunsis_backend.model.receiver.Receiver;
+import com.unsis.scunsis_backend.repository.proof.IProofRepository;
 import com.unsis.scunsis_backend.repository.receiver.IReceiverRepository;
+import com.unsis.scunsis_backend.util.FolioGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Year;
 import java.util.List;
 
 @Service
@@ -19,6 +23,8 @@ public class ReceiverService {
 
     private final IReceiverRepository receiverRepository;
     private final ReceiverMapper receiverMapper;
+    private final FolioGenerator folioGenerator;
+    private final IProofRepository proofRepository;
 
     public ReceiverResponse getById(long receiverId) {
         return receiverMapper.toDto(receiverRepository.findById(receiverId)
@@ -53,6 +59,25 @@ public class ReceiverService {
         }
         Receiver receiver = receiverMapper.toEntity(request);
         receiver = receiverRepository.save(receiver);
-        return receiverMapper.toDto(receiver);
+        ReceiverResponse response = receiverMapper.toDto(receiver);
+        response.setFolio(generateFolio());
+        return response;
+    }
+
+    @Transactional
+    public ReceiverResponse updateReceiver(long receiverId, ReceiverRequest request) {
+        Receiver receiver = receiverRepository.findById(receiverId)
+                .orElseThrow(() -> new AppException("Receptor no encontrado con id: " + receiverId, HttpStatus.NOT_FOUND));
+        receiverMapper.updateEntity(request, receiver);
+        receiver = receiverRepository.save(receiver);
+        ReceiverResponse response = receiverMapper.toDto(receiver);
+        response.setFolio(generateFolio());
+        return response;
+    }
+
+    private String generateFolio() {
+        int year = Year.now().getValue();
+        long count = proofRepository.countByRoleAndYear(EParticipationRole.PARTICIPANTE, year);
+        return folioGenerator.generateFolio(EParticipationRole.PARTICIPANTE, count + 1, year);
     }
 }

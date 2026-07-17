@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/scunsis/api/v1/sender")
+@RequestMapping("/api/v1/sender")
 @RequiredArgsConstructor
 public class SenderController {
 
@@ -31,6 +31,11 @@ public class SenderController {
     public ResponseEntity<Void> createSender(@RequestBody SenderRequest request) {
         senderService.createSender(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PutMapping("/{senderId}")
+    public ResponseEntity<SenderResponse> updateSender(@PathVariable long senderId, @RequestBody SenderRequest request) {
+        return ResponseEntity.ok(senderService.updateSender(senderId, request));
     }
 
     @DeleteMapping("/{senderId}")

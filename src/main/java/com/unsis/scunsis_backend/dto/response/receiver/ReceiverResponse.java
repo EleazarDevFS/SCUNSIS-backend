@@ -17,4 +17,5 @@ public class ReceiverResponse {
     private String phone;
     private String email;
     private String academicGrade;
+    private String folio;
 }

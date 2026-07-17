@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/scunsis/api/v1/proof")
+@RequestMapping("/api/v1/proof")
 @RequiredArgsConstructor
 public class ProofController {
 
