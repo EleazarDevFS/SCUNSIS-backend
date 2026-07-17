@@ -2,6 +2,8 @@ package com.unsis.scunsis_backend.service.excel;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.odftoolkit.simple.SpreadsheetDocument;
+import org.odftoolkit.simple.table.Table;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,26 +16,54 @@ import java.util.List;
 public class ExcelParseService {
 
     public List<List<String>> parseToArrays(MultipartFile file) throws IOException {
-        List<List<String>> data = new ArrayList<>();
+        String filename = file.getOriginalFilename();
+        if (filename != null && filename.toLowerCase().endsWith(".ods")) {
+            return parseOdsToArrays(file);
+        }
+        return parseXlsxToArrays(file);
+    }
 
+    private List<List<String>> parseXlsxToArrays(MultipartFile file) throws IOException {
+        List<List<String>> data = new ArrayList<>();
         try (InputStream is = file.getInputStream();
              Workbook workbook = new XSSFWorkbook(is)) {
-
             Sheet sheet = workbook.getSheetAt(0);
             for (Row row : sheet) {
                 List<String> rowData = new ArrayList<>();
                 for (int i = 0; i < row.getLastCellNum(); i++) {
-                    Cell cell = row.getCell(i);
-                    rowData.add(getCellValue(cell));
+                    rowData.add(getCellValueAsString(row.getCell(i)));
                 }
                 data.add(rowData);
             }
         }
-
         return data;
     }
 
-    private String getCellValue(Cell cell) {
+    private List<List<String>> parseOdsToArrays(MultipartFile file) throws IOException {
+        List<List<String>> data = new ArrayList<>();
+        try (InputStream is = file.getInputStream()) {
+            SpreadsheetDocument doc = SpreadsheetDocument.loadDocument(is);
+            try {
+                Table sheet = doc.getSheetByIndex(0);
+                for (org.odftoolkit.simple.table.Row row : sheet.getRowList()) {
+                    List<String> rowData = new ArrayList<>();
+                    int lastCell = row.getCellCount();
+                    for (int i = 0; i < lastCell; i++) {
+                        org.odftoolkit.simple.table.Cell cell = row.getCellByIndex(i);
+                        rowData.add(cell != null ? cell.getStringValue() : "");
+                    }
+                    data.add(rowData);
+                }
+            } finally {
+                doc.close();
+            }
+        } catch (Exception e) {
+            throw new IOException("Error al leer archivo ODS: " + e.getMessage(), e);
+        }
+        return data;
+    }
+
+    private String getCellValueAsString(Cell cell) {
         if (cell == null) return "";
         return switch (cell.getCellType()) {
             case STRING -> cell.getStringCellValue();

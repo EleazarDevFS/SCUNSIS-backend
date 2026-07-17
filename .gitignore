@@ -39,3 +39,7 @@ out/
 ### scripts db ###
 *.sql
 !src/main/resources/data.sql
+
+### test excel ###
+*.xlsx
+*.ods
