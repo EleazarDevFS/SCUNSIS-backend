@@ -289,6 +289,7 @@ public class ProofService {
         return pdfGenerationService.generateCertificate(proof);
     }
 
+    @Transactional
     public CanvasPdfResponse generatePdfs(CanvasPdfRequest request) {
         try {
             String base64Data = request.getCanvasImage();
@@ -308,7 +309,6 @@ public class ProofService {
             Files.createDirectories(outputDir);
 
             List<List<String>> persons = request.getData();
-            List<String> folios = request.getFolios();
             List<String> generatedFolios = new ArrayList<>();
             List<String> generatedPaths = new ArrayList<>();
 
@@ -316,6 +316,9 @@ public class ProofService {
             Activity activity = null;
             Event event = null;
             EParticipationRole role = null;
+            long roleCountBase = 0;
+            long roleIncrement = 0;
+            int currentYear = LocalDate.now().getYear();
 
             if (request.getSenderId() != null && request.getActivityId() != null
                     && request.getEventId() != null && request.getRole() != null) {
@@ -326,12 +329,12 @@ public class ProofService {
                 event = eventRepository.findById(request.getEventId())
                         .orElseThrow(() -> new AppException("Evento no encontrado", HttpStatus.NOT_FOUND));
                 role = EParticipationRole.valueOf(request.getRole().trim().toUpperCase());
+                roleCountBase = proofRepository.countByRoleAndYear(role, currentYear);
             }
 
             int count = 0;
             for (int i = 0; i < persons.size(); i++) {
                 List<String> person = persons.get(i);
-                String folio = (folios != null && i < folios.size()) ? folios.get(i) : null;
 
                 String nombre = person.size() > 0 ? person.get(0) : "";
                 String primerApellido = person.size() > 1 ? person.get(1) : "";
@@ -343,6 +346,12 @@ public class ProofService {
                         List.of(nombre, primerApellido, segundoApellido).stream()
                                 .filter(s -> s != null && !s.isBlank())
                                 .toArray(String[]::new));
+
+                String folio = null;
+                if (sender != null && activity != null && event != null && role != null) {
+                    roleIncrement++;
+                    folio = folioGenerator.generateFolio(role, roleCountBase + roleIncrement, currentYear);
+                }
 
                 String filename = "constancia-" + (folio != null ? folio : nombreCompleto.replaceAll("\\s+", "_")) + ".pdf";
                 Path filePath = outputDir.resolve(filename);
@@ -358,7 +367,7 @@ public class ProofService {
                     document.close();
                 }
 
-                if (folio != null && sender != null && activity != null && event != null && role != null) {
+                if (folio != null) {
                     Receiver receiver = Receiver.builder()
                             .name(nombre)
                             .lastName(primerApellido)

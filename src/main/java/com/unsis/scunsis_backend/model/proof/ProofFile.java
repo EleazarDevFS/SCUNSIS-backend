@@ -26,7 +26,7 @@ public class ProofFile {
     @Column(name = "id_archivo")
     private Long id;
 
-    @Column(name = "folio", length = 20, nullable = false)
+    @Column(name = "folio", length = 20, nullable = false, unique = true)
     private String folio;
 
     @Column(name = "ruta_pdf", length = 500)
