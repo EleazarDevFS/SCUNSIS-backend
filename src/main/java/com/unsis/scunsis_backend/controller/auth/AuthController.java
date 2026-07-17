@@ -3,8 +3,10 @@ package com.unsis.scunsis_backend.controller.auth;
 import com.unsis.scunsis_backend.model.auth.User;
 import com.unsis.scunsis_backend.repository.auth.IUserRepository;
 import com.unsis.scunsis_backend.security.JwtUtil;
+import com.unsis.scunsis_backend.service.auth.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +18,7 @@ import java.util.Map;
 public class AuthController {
 
     private final IUserRepository userRepository;
+    private final UserService userService;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
@@ -39,7 +42,41 @@ public class AuthController {
                 "message", "Inicio de sesion exitoso",
                 "token", token,
                 "username", user.getUsername(),
-                "role", user.getRole().name()
+                "role", user.getRole().name(),
+                "mustChangePassword", user.isMustChangePassword()
+        ));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Map<String, Object>> changePassword(@RequestBody Map<String, String> body,
+                                                               Authentication authentication) {
+        String newPassword = body.getOrDefault("newPassword", "");
+        if (newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "La nueva contraseña es requerida"
+            ));
+        }
+        if (newPassword.length() < 4) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "La contraseña debe tener al menos 4 caracteres"
+            ));
+        }
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Usuario no encontrado"
+            ));
+        }
+        userService.changePassword(user.getId(), newPassword);
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Contraseña actualizada exitosamente",
+                "token", token
         ));
     }
 }
