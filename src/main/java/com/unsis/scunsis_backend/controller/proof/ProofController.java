@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,32 +29,38 @@ public class ProofController {
     private final ProofService proofService;
     private final ExcelService excelService;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAPTURISTA')")
     @GetMapping
     public ResponseEntity<List<ProofResponse>> getAll() {
         return ResponseEntity.ok(proofService.getAll());
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAPTURISTA')")
     @GetMapping("/{folio}")
     public ResponseEntity<ProofResponse> getById(@PathVariable String folio) {
         return ResponseEntity.ok(proofService.getById(folio));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ProofResponse> createProof(@RequestBody ProofRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(proofService.createProof(request));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAPTURISTA')")
     @GetMapping("/by-activity/{activityId}")
     public ResponseEntity<List<ProofResponse>> getByActivity(@PathVariable Long activityId) {
         return ResponseEntity.ok(proofService.getByActivity(activityId));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{folio}")
     public ResponseEntity<Void> deleteProof(@PathVariable String folio) {
         proofService.deleteById(folio);
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAPTURISTA')")
     @GetMapping("/{folio}/pdf")
     public ResponseEntity<byte[]> downloadPdf(@PathVariable String folio) {
         byte[] pdfBytes = proofService.generatePdf(folio);
@@ -63,6 +70,7 @@ public class ProofController {
         return ResponseEntity.ok().headers(headers).body(pdfBytes);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAPTURISTA')")
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProofBulkResponse> uploadExcel(
             @RequestParam("file") MultipartFile file,

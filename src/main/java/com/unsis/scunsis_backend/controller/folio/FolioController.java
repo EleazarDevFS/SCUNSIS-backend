@@ -5,6 +5,7 @@ import com.unsis.scunsis_backend.repository.proof.IProofRepository;
 import com.unsis.scunsis_backend.util.FolioGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Year;
@@ -18,6 +19,7 @@ public class FolioController {
     private final FolioGenerator folioGenerator;
     private final IProofRepository proofRepository;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAPTURISTA')")
     @GetMapping("/folio")
     public ResponseEntity<Map<String, Object>> getFolio() {
         int year = Year.now().getValue();

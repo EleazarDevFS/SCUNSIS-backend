@@ -6,6 +6,7 @@ import com.unsis.scunsis_backend.service.sender.SenderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,27 +18,32 @@ public class SenderController {
 
     private final SenderService senderService;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAPTURISTA')")
     @GetMapping
     public ResponseEntity<List<SenderResponse>> getAll() {
         return ResponseEntity.ok(senderService.getAll());
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAPTURISTA')")
     @GetMapping("/{senderId}")
     public ResponseEntity<SenderResponse> getById(@PathVariable long senderId) {
         return ResponseEntity.ok(senderService.getById(senderId));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<Void> createSender(@RequestBody SenderRequest request) {
         senderService.createSender(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{senderId}")
     public ResponseEntity<SenderResponse> updateSender(@PathVariable long senderId, @RequestBody SenderRequest request) {
         return ResponseEntity.ok(senderService.updateSender(senderId, request));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{senderId}")
     public ResponseEntity<Void> deleteById(@PathVariable long senderId) {
         senderService.deleteById(senderId);

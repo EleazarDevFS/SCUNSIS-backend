@@ -3,6 +3,7 @@ package com.unsis.scunsis_backend.controller.file;
 import com.unsis.scunsis_backend.service.excel.ExcelParseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,6 +16,7 @@ public class FileController {
 
     private final ExcelParseService excelParseService;
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAPTURISTA')")
     @PostMapping("/file")
     public ResponseEntity<Map<String, Object>> parseExcel(@RequestParam("file") MultipartFile file) {
         try {
@@ -25,6 +27,7 @@ public class FileController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'CAPTURISTA')")
     @PostMapping("/upload-excel")
     public ResponseEntity<Map<String, Object>> uploadExcel(@RequestParam("file") MultipartFile file) {
         try {
