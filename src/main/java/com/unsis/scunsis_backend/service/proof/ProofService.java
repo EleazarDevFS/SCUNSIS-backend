@@ -299,127 +299,138 @@ public class ProofService {
         return pdfGenerationService.generateCertificate(proof);
     }
 
+    private record ProofEntities(Sender sender, Activity activity, Event event,
+                                 EParticipationRole role, long roleCountBase) {
+        boolean isComplete() {
+            return sender != null && activity != null && event != null && role != null;
+        }
+    }
+
+    private record PersonFields(String nombre, String primerApellido, String segundoApellido,
+                                String gradoAcademico, String nombreCompleto) {}
+
     @Transactional
     public CanvasPdfResponse generatePdfs(CanvasPdfRequest request) {
         try {
-            String base64Data = request.getCanvasImage();
-            if (base64Data.contains(",")) {
-                base64Data = base64Data.split(",")[1];
-            }
-            byte[] imageBytes = Base64.getDecoder().decode(base64Data);
-
+            byte[] imageBytes = decodeBase64Image(request.getCanvasImage());
             BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
             if (bufferedImage == null) {
                 throw new AppException("No se pudo decodificar la imagen", HttpStatus.BAD_REQUEST);
             }
-            int width = bufferedImage.getWidth();
-            int height = bufferedImage.getHeight();
 
-            Path outputDir = Paths.get(generatedDir).toAbsolutePath().normalize();
-            Files.createDirectories(outputDir);
+            Path outputDir = createOutputDirectory();
+            int currentYear = LocalDate.now(ZoneId.systemDefault()).getYear();
+            ProofEntities entities = loadProofEntities(request, currentYear);
 
             List<List<String>> persons = request.getData();
             List<String> generatedFolios = new ArrayList<>();
             List<String> generatedPaths = new ArrayList<>();
-
-            Sender sender = null;
-            Activity activity = null;
-            Event event = null;
-            EParticipationRole role = null;
-            long roleCountBase = 0;
             long roleIncrement = 0;
-            int currentYear = LocalDate.now(ZoneId.systemDefault()).getYear();
-
-            if (request.getSenderId() != null && request.getActivityId() != null
-                    && request.getEventId() != null && request.getRole() != null) {
-                sender = senderRepository.findById(request.getSenderId())
-                        .orElseThrow(() -> new AppException(SENDER_NOT_FOUND, HttpStatus.NOT_FOUND));
-                activity = activityRepository.findById(request.getActivityId())
-                        .orElseThrow(() -> new AppException(ACTIVITY_NOT_FOUND, HttpStatus.NOT_FOUND));
-                event = eventRepository.findById(request.getEventId())
-                        .orElseThrow(() -> new AppException(EVENT_NOT_FOUND, HttpStatus.NOT_FOUND));
-                role = EParticipationRole.valueOf(request.getRole().trim().toUpperCase());
-                roleCountBase = proofRepository.countByRoleAndYear(role, currentYear);
-            }
-
             int count = 0;
-            for (int i = 0; i < persons.size(); i++) {
-                List<String> person = persons.get(i);
 
-                String nombre = !person.isEmpty() ? person.get(0) : "";
-                String primerApellido = person.size() > 1 ? person.get(1) : "";
-                String segundoApellido = person.size() > 2 ? person.get(2) : "";
-                String gradoAcademico = person.size() > 3 ? person.get(3) : "";
+            for (List<String> person : persons) {
+                PersonFields fields = extractPersonFields(person);
+                String folio = generateFolioIfComplete(entities, currentYear, ++roleIncrement);
+                Path filePath = resolveFilePath(outputDir, folio, fields.nombreCompleto());
 
-                String nombreCompleto = String.join(" ",
-                        List.of(nombre, primerApellido, segundoApellido).stream()
-                                .filter(s -> s != null && !s.isBlank())
-                                .toArray(String[]::new));
-
-                String folio = null;
-                if (sender != null && activity != null && event != null && role != null) {
-                    roleIncrement++;
-                    folio = folioGenerator.generateFolio(role, roleCountBase + roleIncrement, currentYear);
-                }
-
-                String filename = "constancia-" + (folio != null ? folio : nombreCompleto.replaceAll("\\s+", "_")) + ".pdf";
-                Path filePath = outputDir.resolve(filename);
-
-                try (OutputStream os = Files.newOutputStream(filePath)) {
-                    Document document = new Document(new Rectangle(width, height), 0, 0, 0, 0);
-                    PdfWriter.getInstance(document, os);
-                    document.open();
-                    Image pdfImage = Image.getInstance(imageBytes);
-                    pdfImage.scaleToFit(width, height);
-                    pdfImage.setAbsolutePosition(0, 0);
-                    document.add(pdfImage);
-                    document.close();
-                }
+                writePdfFromImage(imageBytes, bufferedImage.getWidth(), bufferedImage.getHeight(), filePath);
 
                 if (folio != null) {
-                    Receiver receiver = Receiver.builder()
-                            .name(nombre)
-                            .lastName(primerApellido)
-                            .twoLastName(segundoApellido.isEmpty() ? null : segundoApellido)
-                            .academicGrade(gradoAcademico.isEmpty() ? null : gradoAcademico)
-                            .build();
-                    receiver = receiverRepository.save(receiver);
-
-                    Proof proof = Proof.builder()
-                            .folio(folio)
-                            .sender(sender)
-                            .receiver(receiver)
-                            .activity(activity)
-                            .event(event)
-                            .role(role)
-                            .date(LocalDate.now(ZoneId.systemDefault()))
-                            .build();
-                    proofRepository.save(proof);
-
-                    ProofFile proofFile = ProofFile.builder()
-                            .folio(folio)
-                            .rutaPdf(filePath.toString())
-                            .fechaCreacion(LocalDateTime.now(ZoneId.systemDefault()))
-                            .build();
-                    proofFileRepository.save(proofFile);
-
+                    persistEntities(folio, filePath);
                     generatedFolios.add(folio);
                     generatedPaths.add(filePath.toString());
                 }
-
                 count++;
             }
 
-            return CanvasPdfResponse.builder()
-                    .count(count)
-                    .path(outputDir.toString())
-                    .generatedFolios(generatedFolios.isEmpty() ? null : generatedFolios)
-                    .generatedPaths(generatedPaths.isEmpty() ? null : generatedPaths)
-                    .build();
+            return buildCanvasResponse(count, outputDir, generatedFolios, generatedPaths);
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {
             throw new AppException("Error al generar constancias: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private byte[] decodeBase64Image(String base64Data) {
+        if (base64Data.contains(",")) {
+            base64Data = base64Data.split(",")[1];
+        }
+        return Base64.getDecoder().decode(base64Data);
+    }
+
+    private Path createOutputDirectory() throws IOException {
+        Path outputDir = Paths.get(generatedDir).toAbsolutePath().normalize();
+        Files.createDirectories(outputDir);
+        return outputDir;
+    }
+
+    private ProofEntities loadProofEntities(CanvasPdfRequest request, int currentYear) {
+        if (request.getSenderId() == null || request.getActivityId() == null
+                || request.getEventId() == null || request.getRole() == null) {
+            return new ProofEntities(null, null, null, null, 0);
+        }
+        Sender sender = senderRepository.findById(request.getSenderId())
+                .orElseThrow(() -> new AppException(SENDER_NOT_FOUND, HttpStatus.NOT_FOUND));
+        Activity activity = activityRepository.findById(request.getActivityId())
+                .orElseThrow(() -> new AppException(ACTIVITY_NOT_FOUND, HttpStatus.NOT_FOUND));
+        Event event = eventRepository.findById(request.getEventId())
+                .orElseThrow(() -> new AppException(EVENT_NOT_FOUND, HttpStatus.NOT_FOUND));
+        EParticipationRole role = EParticipationRole.valueOf(request.getRole().trim().toUpperCase());
+        long roleCountBase = proofRepository.countByRoleAndYear(role, currentYear);
+        return new ProofEntities(sender, activity, event, role, roleCountBase);
+    }
+
+    private PersonFields extractPersonFields(List<String> person) {
+        String nombre = !person.isEmpty() ? person.get(0) : "";
+        String primerApellido = person.size() > 1 ? person.get(1) : "";
+        String segundoApellido = person.size() > 2 ? person.get(2) : "";
+        String gradoAcademico = person.size() > 3 ? person.get(3) : "";
+        String nombreCompleto = String.join(" ",
+                List.of(nombre, primerApellido, segundoApellido).stream()
+                        .filter(s -> s != null && !s.isBlank())
+                        .toArray(String[]::new));
+        return new PersonFields(nombre, primerApellido, segundoApellido, gradoAcademico, nombreCompleto);
+    }
+
+    private String generateFolioIfComplete(ProofEntities entities, int currentYear, long increment) {
+        if (!entities.isComplete()) return null;
+        return folioGenerator.generateFolio(entities.role(), entities.roleCountBase() + increment, currentYear);
+    }
+
+    private Path resolveFilePath(Path outputDir, String folio, String nombreCompleto) {
+        String filename = "constancia-" + (folio != null ? folio : nombreCompleto.replaceAll("\\s+", "_")) + ".pdf";
+        return outputDir.resolve(filename);
+    }
+
+    private void writePdfFromImage(byte[] imageBytes, int width, int height, Path filePath) throws IOException {
+        try (OutputStream os = Files.newOutputStream(filePath)) {
+            Document document = new Document(new Rectangle(width, height), 0, 0, 0, 0);
+            PdfWriter.getInstance(document, os);
+            document.open();
+            Image pdfImage = Image.getInstance(imageBytes);
+            pdfImage.scaleToFit(width, height);
+            pdfImage.setAbsolutePosition(0, 0);
+            document.add(pdfImage);
+            document.close();
+        }
+    }
+
+    private void persistEntities(String folio, Path filePath) {
+        ProofFile proofFile = ProofFile.builder()
+                .folio(folio)
+                .rutaPdf(filePath.toString())
+                .fechaCreacion(LocalDateTime.now(ZoneId.systemDefault()))
+                .build();
+        proofFileRepository.save(proofFile);
+    }
+
+    private CanvasPdfResponse buildCanvasResponse(int count, Path outputDir,
+                                                  List<String> generatedFolios, List<String> generatedPaths) {
+        return CanvasPdfResponse.builder()
+                .count(count)
+                .path(outputDir.toString())
+                .generatedFolios(generatedFolios.isEmpty() ? null : generatedFolios)
+                .generatedPaths(generatedPaths.isEmpty() ? null : generatedPaths)
+                .build();
     }
 }
