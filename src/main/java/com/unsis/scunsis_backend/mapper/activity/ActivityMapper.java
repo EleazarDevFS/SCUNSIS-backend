@@ -8,7 +8,6 @@ import com.unsis.scunsis_backend.model.event.Event;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class ActivityMapper implements BaseMapper<ActivityResponse, ActivityRequest, Activity> {
@@ -41,7 +40,7 @@ public class ActivityMapper implements BaseMapper<ActivityResponse, ActivityRequ
 
     @Override
     public List<ActivityResponse> toDtos(List<Activity> entities) {
-        return entities.stream().map(this::toDto).collect(Collectors.toList());
+        return entities.stream().map(this::toDto).toList();
     }
 
     @Override

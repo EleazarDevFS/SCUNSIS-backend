@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -20,10 +20,12 @@ public class UserService {
     private final IUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    private static final String USER_NOT_FOUND = "Usuario no encontrado";
+
     public List<UserResponse> findAll() {
         return userRepository.findAll().stream()
                 .map(this::toResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Optional<UserResponse> findById(Long id) {
@@ -51,7 +53,7 @@ public class UserService {
 
     public void changePassword(Long id, String newPassword) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setMustChangePassword(false);
         userRepository.save(user);
@@ -59,7 +61,7 @@ public class UserService {
 
     public UserResponse update(Long id, UserRequest request, String currentUsername) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
         if (user.getUsername().equals(currentUsername)) {
             throw new IllegalArgumentException("No puedes editarte a ti mismo");
         }
@@ -83,7 +85,7 @@ public class UserService {
 
     public void deleteById(Long id, String currentUsername) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND));
         if (user.getUsername().equals(currentUsername)) {
             throw new IllegalArgumentException("No puedes eliminarte a ti mismo");
         }

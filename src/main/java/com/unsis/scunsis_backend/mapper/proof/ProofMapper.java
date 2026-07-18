@@ -6,6 +6,7 @@ import com.unsis.scunsis_backend.mapper.BaseMapper;
 import com.unsis.scunsis_backend.model.activity.Activity;
 import com.unsis.scunsis_backend.model.event.Event;
 import com.unsis.scunsis_backend.model.proof.Proof;
+import com.unsis.scunsis_backend.model.proof.ProofFile;
 import com.unsis.scunsis_backend.model.receiver.Receiver;
 import com.unsis.scunsis_backend.model.sender.Sender;
 import com.unsis.scunsis_backend.repository.proof.IProofFileRepository;
@@ -13,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -39,7 +39,7 @@ public class ProofMapper implements BaseMapper<ProofResponse, ProofRequest, Proo
                 + (entity.getReceiver().getTwoLastName() != null ? " " + entity.getReceiver().getTwoLastName() : "");
 
         String rutaPdf = proofFileRepository.findByFolio(entity.getFolio())
-                .map(pf -> pf.getRutaPdf())
+                .map(ProofFile::getRutaPdf)
                 .orElse(null);
 
         return ProofResponse.builder()
@@ -61,7 +61,7 @@ public class ProofMapper implements BaseMapper<ProofResponse, ProofRequest, Proo
 
     @Override
     public List<ProofResponse> toDtos(List<Proof> entities) {
-        return entities.stream().map(this::toDto).collect(Collectors.toList());
+        return entities.stream().map(this::toDto).toList();
     }
 
     @Override

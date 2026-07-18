@@ -7,7 +7,6 @@ import com.unsis.scunsis_backend.model.receiver.Receiver;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class ReceiverMapper implements BaseMapper<ReceiverResponse, ReceiverRequest, Receiver> {
@@ -39,7 +38,7 @@ public class ReceiverMapper implements BaseMapper<ReceiverResponse, ReceiverRequ
 
     @Override
     public List<ReceiverResponse> toDtos(List<Receiver> entities) {
-        return entities.stream().map(this::toDto).collect(Collectors.toList());
+        return entities.stream().map(this::toDto).toList();
     }
 
     @Override

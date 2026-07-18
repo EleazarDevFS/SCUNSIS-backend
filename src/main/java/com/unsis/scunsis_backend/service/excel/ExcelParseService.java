@@ -9,8 +9,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
+import java.util.stream.IntStream;
 
 @Service
 public class ExcelParseService {
@@ -21,6 +22,38 @@ public class ExcelParseService {
             return parseOdsToArrays(file);
         }
         return parseXlsxToArrays(file);
+    }
+
+    public List<Map<String, String>> parseToFolioEntries(MultipartFile file) throws IOException {
+        List<List<String>> data = parseToArrays(file);
+        return extractFolioEntries(data);
+    }
+
+    public List<Map<String, String>> extractFolioEntries(List<List<String>> data) {
+        if (data.isEmpty()) return List.of();
+
+        boolean hasHeader = isHeaderRow(data.getFirst());
+        int startIndex = hasHeader ? 1 : 0;
+
+        return IntStream.range(startIndex, data.size())
+                .mapToObj(i -> toFolioEntry(data.get(i)))
+                .toList();
+    }
+
+    private Map<String, String> toFolioEntry(List<String> row) {
+        Map<String, String> entry = new LinkedHashMap<>();
+        entry.put("nombre", !row.isEmpty() ? row.get(0) : "");
+        entry.put("primer_apellido", row.size() > 1 ? row.get(1) : "");
+        entry.put("segundo_apellido", row.size() > 2 ? row.get(2) : "");
+        entry.put("grado_academico", row.size() > 3 ? row.get(3) : "");
+        entry.put("grado", row.size() > 4 ? row.get(4) : "");
+        return entry;
+    }
+
+    private boolean isHeaderRow(List<String> row) {
+        if (row.isEmpty()) return false;
+        String first = row.getFirst().toLowerCase();
+        return first.equals("nombre") || first.equals("nombres") || first.equals("name");
     }
 
     private List<List<String>> parseXlsxToArrays(MultipartFile file) throws IOException {

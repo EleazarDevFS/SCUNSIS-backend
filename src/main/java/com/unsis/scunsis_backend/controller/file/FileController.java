@@ -7,7 +7,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -32,22 +34,7 @@ public class FileController {
     public ResponseEntity<Map<String, Object>> uploadExcel(@RequestParam("file") MultipartFile file) {
         try {
             List<List<String>> data = excelParseService.parseToArrays(file);
-            List<Map<String, String>> folios = new ArrayList<>();
-
-            boolean hasHeader = !data.isEmpty();
-            List<String> headers = hasHeader ? data.getFirst() : List.of();
-            boolean skipFirst = hasHeader && isHeaderRow(headers);
-
-            for (int i = skipFirst ? 1 : 0; i < data.size(); i++) {
-                List<String> row = data.get(i);
-                Map<String, String> folioEntry = new LinkedHashMap<>();
-                folioEntry.put("nombre", row.size() > 0 ? row.get(0) : "");
-                folioEntry.put("primer_apellido", row.size() > 1 ? row.get(1) : "");
-                folioEntry.put("segundo_apellido", row.size() > 2 ? row.get(2) : "");
-                folioEntry.put("grado_academico", row.size() > 3 ? row.get(3) : "");
-                folioEntry.put("grado", row.size() > 4 ? row.get(4) : "");
-                folios.add(folioEntry);
-            }
+            List<Map<String, String>> folios = excelParseService.extractFolioEntries(data);
 
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("folios", folios);
@@ -56,11 +43,5 @@ public class FileController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Error al procesar el archivo: " + e.getMessage()));
         }
-    }
-
-    private boolean isHeaderRow(List<String> row) {
-        if (row.isEmpty()) return false;
-        String first = row.get(0).toLowerCase();
-        return first.equals("nombre") || first.equals("nombres") || first.equals("name");
     }
 }

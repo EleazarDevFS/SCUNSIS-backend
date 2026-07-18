@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Year;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -76,7 +77,7 @@ public class ReceiverService {
     }
 
     private String generateFolio() {
-        int year = Year.now().getValue();
+        int year = Year.now(ZoneId.systemDefault()).getValue();
         long count = proofRepository.countByRoleAndYear(EParticipationRole.PARTICIPANTE, year);
         return folioGenerator.generateFolio(EParticipationRole.PARTICIPANTE, count + 1, year);
     }

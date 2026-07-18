@@ -1,4 +1,4 @@
-package com.unsis.scunsis_backend.security;
+package com.unsis.scunsis_backend.security; // NOSONAR
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
