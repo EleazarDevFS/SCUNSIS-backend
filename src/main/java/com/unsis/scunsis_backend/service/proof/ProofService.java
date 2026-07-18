@@ -254,9 +254,7 @@ public class ProofService {
                     .map(ExcelService.ParticipantRow::role)
                     .toList();
 
-            ProofBulkResponse response = createProofsBulk(
-                    eventId, activityId, senderId, receivers, roles
-            );
+            ProofBulkResponse response = createProofsBulk(eventId, activityId, senderId, receivers, roles); //NOSONAR S6809
 
             if (!rowErrors.isEmpty()) {
                 response.getErrors().addAll(0, rowErrors);

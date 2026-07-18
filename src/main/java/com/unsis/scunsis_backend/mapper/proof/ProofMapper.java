@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -39,7 +38,7 @@ public class ProofMapper implements BaseMapper<ProofResponse, ProofRequest, Proo
                 + (entity.getReceiver().getTwoLastName() != null ? " " + entity.getReceiver().getTwoLastName() : "");
 
         String rutaPdf = proofFileRepository.findByFolio(entity.getFolio())
-                .map(pf -> pf.getRutaPdf())
+                .map(pf -> pf.getRutaPdf()) //
                 .orElse(null);
 
         return ProofResponse.builder()
@@ -61,7 +60,7 @@ public class ProofMapper implements BaseMapper<ProofResponse, ProofRequest, Proo
 
     @Override
     public List<ProofResponse> toDtos(List<Proof> entities) {
-        return entities.stream().map(this::toDto).collect(Collectors.toList());
+        return entities.stream().map(this::toDto).toList();
     }
 
     @Override

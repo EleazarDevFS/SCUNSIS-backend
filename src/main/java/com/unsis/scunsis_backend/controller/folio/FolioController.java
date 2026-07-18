@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Year;
+import java.time.ZoneId;
 import java.util.Map;
 
 @RestController
@@ -22,7 +23,7 @@ public class FolioController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CAPTURISTA')")
     @GetMapping("/folio")
     public ResponseEntity<Map<String, Object>> getFolio() {
-        int year = Year.now().getValue();
+        int year = Year.now(ZoneId.systemDefault()).getValue();
         long count = proofRepository.countByRoleAndYear(EParticipationRole.PARTICIPANTE, year);
         String nextFolio = folioGenerator.generateFolio(EParticipationRole.PARTICIPANTE, count + 1, year);
         return ResponseEntity.ok(Map.of(

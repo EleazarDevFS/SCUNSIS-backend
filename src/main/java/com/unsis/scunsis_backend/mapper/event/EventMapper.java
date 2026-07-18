@@ -7,7 +7,6 @@ import com.unsis.scunsis_backend.model.event.Event;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class EventMapper implements BaseMapper<EventResponse, EventRequest, Event> {
@@ -39,7 +38,7 @@ public class EventMapper implements BaseMapper<EventResponse, EventRequest, Even
 
     @Override
     public List<EventResponse> toDtos(List<Event> entities) {
-        return entities.stream().map(this::toDto).collect(Collectors.toList());
+        return entities.stream().map(this::toDto).toList();
     }
 
     @Override

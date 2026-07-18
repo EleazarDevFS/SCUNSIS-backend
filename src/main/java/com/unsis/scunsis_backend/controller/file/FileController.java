@@ -41,7 +41,7 @@ public class FileController {
             for (int i = skipFirst ? 1 : 0; i < data.size(); i++) {
                 List<String> row = data.get(i);
                 Map<String, String> folioEntry = new LinkedHashMap<>();
-                folioEntry.put("nombre", row.size() > 0 ? row.get(0) : "");
+                folioEntry.put("nombre", !row.isEmpty() ? row.get(0) : "");
                 folioEntry.put("primer_apellido", row.size() > 1 ? row.get(1) : "");
                 folioEntry.put("segundo_apellido", row.size() > 2 ? row.get(2) : "");
                 folioEntry.put("grado_academico", row.size() > 3 ? row.get(3) : "");

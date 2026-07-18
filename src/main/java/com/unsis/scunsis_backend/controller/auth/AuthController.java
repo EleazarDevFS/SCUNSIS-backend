@@ -22,6 +22,9 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
+    private static final String SUCCESS = "success";
+    private static final String MESSAGE = "message";
+
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
         String username = credentials.getOrDefault("username", "");
@@ -30,16 +33,16 @@ public class AuthController {
         User user = userRepository.findByUsername(username).orElse(null);
         if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
             return ResponseEntity.status(401).body(Map.of(
-                    "success", false,
-                    "message", "Credenciales invalidas"
+                    SUCCESS, false,
+                    MESSAGE, "Credenciales invalidas"
             ));
         }
 
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
 
         return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Inicio de sesion exitoso",
+                SUCCESS, true,
+                MESSAGE, "Inicio de sesion exitoso",
                 "token", token,
                 "username", user.getUsername(),
                 "role", user.getRole().name(),
@@ -53,29 +56,29 @@ public class AuthController {
         String newPassword = body.getOrDefault("newPassword", "");
         if (newPassword.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", "La nueva contraseña es requerida"
+                    SUCCESS, false,
+                    MESSAGE, "La nueva contraseña es requerida"
             ));
         }
         if (newPassword.length() < 4) {
             return ResponseEntity.badRequest().body(Map.of(
-                    "success", false,
-                    "message", "La contraseña debe tener al menos 4 caracteres"
+                    SUCCESS, false,
+                    MESSAGE, "La contraseña debe tener al menos 4 caracteres"
             ));
         }
         String username = authentication.getName();
         User user = userRepository.findByUsername(username).orElse(null);
         if (user == null) {
             return ResponseEntity.status(401).body(Map.of(
-                    "success", false,
-                    "message", "Usuario no encontrado"
+                    SUCCESS, false,
+                    MESSAGE, "Usuario no encontrado"
             ));
         }
         userService.changePassword(user.getId(), newPassword);
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
         return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Contraseña actualizada exitosamente",
+                SUCCESS, true,
+                MESSAGE, "Contraseña actualizada exitosamente",
                 "token", token
         ));
     }
