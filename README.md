@@ -11,26 +11,151 @@ Sistema backend para la gestion de constancias academicas en eventos universitar
 - Apache POI (lectura de Excel)
 - OpenPDF (generacion de PDF)
 - SpringDoc OpenAPI (Swagger UI)
+- Docker (contenedores)
+- Docker-compose (orquestacion)
+
+## Requisitos
+
+- Docker + Docker Compose
+
+## Inicio rapido (con Docker)
+
+```bash
+# Clonar el proyecto y entrar
+cd scunsis-backend
+
+# Iniciar todos los servicios
+docker compose up -d
+```
+
+Esto levanta tres contenedores:
+
+| Servicio | Puerto host | Descripcion |
+|----------|-------------|-------------|
+| **db** | `5433` | PostgreSQL 16 |
+| **backend** | `8082` | API Spring Boot |
+| **frontend** | `5173` | Nginx sirviendo Vue + proxy a backend |
+
+### Accesos
+
+| Que | URL |
+|-----|-----|
+| Frontend | http://localhost:5173 |
+| API Backend | http://localhost:8082 |
+| Swagger UI | http://localhost:8082/swagger-ui.html |
+| Base de datos (host) | `localhost:5433` usuario: `usuario` pass: `password` |
+
+### Credenciales iniciales
+
+| Usuario | Rol | Password (default) |
+|---------|-----|--------------------|
+| `admin` | ADMIN | `password` |
+| `capturista` | CAPTURISTA | `password` |
+
+>[!INFO]
+>Las contraseñas se configuran via variables de entorno en `.env`.
+
+> Todo usuario nuevo (incluyendo admin y capturista) al iniciar sesion por primera vez debera cambiar su contraseña. El campo `mustChangePassword` se inicializa en `true` y la interfaz redirige automaticamente al formulario de cambio de contraseña.
+
+### Comandos utiles
+
+```bash
+# Ver logs de todos los servicios
+docker compose logs -f
+
+# Ver logs de un servicio especifico
+docker compose logs -f backend
+docker compose logs -f frontend
+docker compose logs -f db
+
+# Detener servicios (sin borrar datos)
+docker compose down
+
+# Detener y borrar volumenes (BD y PDFs)
+docker compose down -v
+
+# Reconstruir imagenes desde cero
+docker compose build --no-cache
+
+# Ver estado de los servicios
+docker compose ps
+```
+
+### Persistencia de datos
+
+Docker Compose define dos volumenes:
+
+- **postgres_data**: datos de la base de datos (sobrevive a `docker compose down`)
+- **constancias_data**: PDFs generados, montado en `/app/constancias` del backend
+
+Para acceder a los PDFs desde el host, se puede cambiar el volumen por un bind mount:
+
+```yaml
+volumes:
+  - ./pdfs:/app/constancias
+```
+
+## Arquitectura con Docker
+
+```
+Host:5433              Host:8082              Host:5173
+  │                       │                       │
+  v                       v                       v
+┌──────────┐          ┌──────────┐          ┌──────────┐
+│PostgreSQL│◄────────►│  Spring  │◄────────►│  Nginx   │
+│   :5432  │  red int │  Boot    │  red int │  :80     │
+└──────────┘          │  :8082   │          │ /api/ →  │
+                      └──────────┘          │ backend  │
+                                             └──────────┘
+```
+
+El frontend se sirve como SPA con Nginx. Las llamadas a `/api/*` se redirigen automaticamente al backend, evitando problemas de CORS.
+
+## Sin Docker (desarrollo local)
+
+```bash
+# Requisitos: Java 21, PostgreSQL corriendo en localhost:5432
+
+# Compilar
+./gradlew compileJava
+
+# Ejecutar pruebas
+./gradlew test
+
+# Iniciar servidor
+./gradlew bootRun
+```
+
+## Variables de entorno
+
+Configuracion via `.env` (usado por Docker Compose automaticamente):
+
+| Variable | Descripcion | Default |
+|----------|-------------|---------|
+| `URL_DB` | URL de conexion a BD | `jdbc:postgresql://db:5432/scunsis` |
+| `USER_DB` | Usuario BD | `postgres` |
+| `PASS_DB` | Password BD | `postgres` |
+| `SERVER_PORT` | Puerto del backend | `8082` |
+| `JWT_SECRET` | Secreto para firmar tokens JWT | —(Generar token con el comando: openssl rand -base64 64) |
+| `JWT_EXPIRATION` | Duracion del token en segundos | `864000` |
+| `PDF_PATH_SAVE` | Directorio para PDFs generados | `./constancias` |
+| `MAX_FILE` | Tamano maximo de subida | `10MB` |
+| `ADMIN_PASSWORD` | Password del usuario admin | `admin` |
+| `CAPTURISTA_PASSWORD` | Password del usuario capturista | `capturista` |
+
+> **Importante**: en produccion cambia `ADMIN_PASSWORD`, `CAPTURISTA_PASSWORD` y `JWT_SECRET`.
 
 ## Modelo de datos
 
 ```
 Evento (event) ──1:N──> Actividad (activity) ──1:N──> Constancia (proof)
                                                          │
-Emisor (sender) ──1:N─────────────────────────────────────┘
+Emisor (sender) ──1:N────────────────────────────────────┘
                                                          │
-Receptor (receiver) ──1:N────────────────────────────────┘
+Receptor (receiver) ──1:N───────────────────────────────┘
 ```
 
-- **Evento**: Congreso, jornada, simposio, conferencia, foro. Puede ser presencial (FISICO) o virtual (VIRTUAL).
-- **Actividad**: Subcomponente de un evento (ponencia, taller, panel, conferencia).
-- **Constancia**: Certificado emitido a una persona por su participacion en una actividad. Cada constancia tiene un folio unico.
-- **Emisor**: Entidad que emite la constancia (facultad, coordinacion, departamento).
-- **Receptor**: Persona que recibe la constancia.
-
 ### Roles de constancia
-
-Cada constancia se asigna con un rol que define la participacion de la persona:
 
 | Rol | Codigo | Descripcion |
 |-----|--------|-------------|
@@ -45,14 +170,12 @@ Los folios se generan automaticamente con el formato: `CODIGO-YYYY-NNNN`
 
 Ejemplo: `PON-2025-0001`, `PAR-2025-0042`
 
-La secuencia es independiente por cada combinacion de rol + año.
-
 ## Carga masiva desde Excel
 
 ### Endpoint
 
 ```
-POST /scunsis/api/v1/proof/upload
+POST /api/v1/proof/upload
 Content-Type: multipart/form-data
 ```
 
@@ -68,8 +191,6 @@ Content-Type: multipart/form-data
 
 ### Estructura del Excel
 
-La primera fila debe contener los encabezados. El orden de las columnas es indistinto.
-
 | Nombre | PrimerApellido | SegundoApellido | Email | Telefono | GradoAcademico | Rol |
 |--------|---------------|-----------------|-------|----------|----------------|-----|
 | Juan | Perez | Garcia | juan@mail.com | 5551234567 | Lic. | PARTICIPANTE |
@@ -77,7 +198,7 @@ La primera fila debe contener los encabezados. El orden de las columnas es indis
 
 - **Nombre** y **PrimerApellido**: obligatorios. Sin ellos la fila se omite.
 - **Email**: si ya existe un receptor con ese correo, se reutiliza en lugar de crear uno nuevo.
-- **Rol**: PONENTE, PARTICIPANTE, ORGANIZADOR o RECONOCIMIENTO. Si no se incluye la columna, se usa el parametro `role` del endpoint.
+- **Rol**: PONENTE, PARTICIPANTE, ORGANIZADOR o RECONOCIMIENTO.
 
 ### Respuesta
 
@@ -93,90 +214,63 @@ La primera fila debe contener los encabezados. El orden de las columnas es indis
 
 ## API Endpoints
 
+### Autenticacion
+
+| Metodo | Endpoint | Descripcion |
+|--------|----------|-------------|
+| POST | `/api/login` | Iniciar sesion |
+| POST | `/api/change-password` | Cambiar contraseña |
+
 ### Eventos
 
 | Metodo | Endpoint | Descripcion |
 |--------|----------|-------------|
-| POST | `/scunsis/api/v1/event` | Crear evento |
-| GET | `/scunsis/api/v1/event` | Listar eventos |
-| GET | `/scunsis/api/v1/event/{id}` | Obtener evento por ID |
-| DELETE | `/scunsis/api/v1/event/{id}` | Eliminar evento |
+| POST | `/api/v1/event` | Crear evento |
+| GET | `/api/v1/event` | Listar eventos |
+| GET | `/api/v1/event/{id}` | Obtener evento por ID |
+| DELETE | `/api/v1/event/{id}` | Eliminar evento |
 
 ### Actividades
 
 | Metodo | Endpoint | Descripcion |
 |--------|----------|-------------|
-| POST | `/scunsis/api/v1/activity` | Crear actividad |
-| GET | `/scunsis/api/v1/activity` | Listar actividades |
-| GET | `/scunsis/api/v1/activity/{id}` | Obtener actividad por ID |
-| DELETE | `/scunsis/api/v1/activity/{id}` | Eliminar actividad |
+| POST | `/api/v1/activity` | Crear actividad |
+| GET | `/api/v1/activity` | Listar actividades |
+| GET | `/api/v1/activity/{id}` | Obtener actividad por ID |
+| DELETE | `/api/v1/activity/{id}` | Eliminar actividad |
 
 ### Constancias
 
 | Metodo | Endpoint | Descripcion |
 |--------|----------|-------------|
-| POST | `/scunsis/api/v1/proof` | Crear constancia individual |
-| GET | `/scunsis/api/v1/proof` | Listar constancias |
-| GET | `/scunsis/api/v1/proof/{folio}` | Obtener constancia por folio |
-| GET | `/scunsis/api/v1/proof/by-activity/{activityId}` | Listar constancias de una actividad |
-| GET | `/scunsis/api/v1/proof/{folio}/pdf` | Descargar constancia en PDF |
-| DELETE | `/scunsis/api/v1/proof/{folio}` | Eliminar constancia |
-| POST | `/scunsis/api/v1/proof/upload` | Carga masiva desde Excel |
+| POST | `/api/v1/proof` | Crear constancia individual |
+| GET | `/api/v1/proof` | Listar constancias |
+| GET | `/api/v1/proof/{folio}` | Obtener constancia por folio |
+| GET | `/api/v1/proof/{folio}/pdf` | Descargar constancia en PDF |
+| DELETE | `/api/v1/proof/{folio}` | Eliminar constancia |
+| POST | `/api/v1/proof/upload` | Carga masiva desde Excel |
 
 ### Emisores
 
 | Metodo | Endpoint | Descripcion |
 |--------|----------|-------------|
-| POST | `/scunsis/api/v1/sender` | Crear emisor |
-| GET | `/scunsis/api/v1/sender` | Listar emisores |
-| GET | `/scunsis/api/v1/sender/{id}` | Obtener emisor por ID |
-| DELETE | `/scunsis/api/v1/sender/{id}` | Eliminar emisor |
+| POST | `/api/v1/sender` | Crear emisor |
+| GET | `/api/v1/sender` | Listar emisores |
+| GET | `/api/v1/sender/{id}` | Obtener emisor por ID |
+| DELETE | `/api/v1/sender/{id}` | Eliminar emisor |
 
 ### Receptores
 
 | Metodo | Endpoint | Descripcion |
 |--------|----------|-------------|
-| POST | `/scunsis/api/v1/receiver` | Crear receptor |
-| GET | `/scunsis/api/v1/receiver` | Listar receptores |
-| GET | `/scunsis/api/v1/receiver/{id}` | Obtener receptor por ID |
-| DELETE | `/scunsis/api/v1/receiver/{id}` | Eliminar receptor |
+| POST | `/api/v1/receiver` | Crear receptor |
+| GET | `/api/v1/receiver` | Listar receptores |
+| GET | `/api/v1/receiver/{id}` | Obtener receptor por ID |
+| DELETE | `/api/v1/receiver/{id}` | Eliminar receptor |
 
-## Documentacion Swagger
+### Archivos
 
-Una vez iniciado el servidor, la documentacion interactiva esta disponible en:
-
-```
-http://localhost:8082/swagger-ui.html
-```
-
-## Base de datos
-
-### Configuracion
-
-Las credenciales por defecto estan en `application.properties`:
-
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/scunsis
-spring.datasource.username=postgres
-spring.datasource.password=postgres
-spring.jpa.hibernate.ddl-auto=update
-```
-
-Con `ddl-auto=create` las tablas se crean automaticamente al iniciar la aplicacion.
-
-### Datos de prueba
-
-Ejecutar el script `populate_data.sql` contra la base de datos para cargar datos de ejemplo.
-
-## Construccion y ejecucion
-
-```bash
-# Compilar
-./gradlew compileJava
-
-# Ejecutar pruebas
-./gradlew test
-
-# Iniciar servidor
-./gradlew bootRun
-```
+| Metodo | Endpoint | Descripcion |
+|--------|----------|-------------|
+| POST | `/api/file` | Subir Excel y obtener datos parseados |
+| POST | `/api/upload-excel` | Subir Excel y extraer folios |

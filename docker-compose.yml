@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: scunsis-db
+    environment:
+      POSTGRES_DB: scunsis
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: scunsis-backend
+    env_file: .env
+    environment:
+      URL_DB: jdbc:postgresql://db:5432/scunsis
+    ports:
+      - "8082:8082"
+    volumes:
+      - constancias_data:/app/constancias
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: /home/chay/DesarrolloWeb/frontend/Vue/SCUNSIS
+    container_name: scunsis-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  constancias_data:

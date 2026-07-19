@@ -1,0 +1,15 @@
+.env
+.git/
+.gitattributes
+.github/
+.gitignore
+.gradle/
+.idea/
+.vscode/
+build/
+bin/
+*.ods
+*.xlsx
+*.md
+populate_data.sql
+test_*
