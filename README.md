@@ -14,6 +14,37 @@ Sistema backend para la gestion de constancias academicas en eventos universitar
 - Docker (contenedores)
 - Docker-compose (orquestacion)
 
+## Flujo de trabajo (GitFlow)
+
+> [!IMPORTANT]
+> No hacer push directo a `main` ni `dev`. Todo cambio debe realizarse mediante **Pull Request (PR)**. Cada PR debe ser revisada y aprobada por al menos un **reviewer** antes de hacer merge. Solo **EleazarDevFS** está autorizado para aprobar y mergear los cambios.
+
+Este proyecto sigue el modelo **GitFlow** para la gestion de ramas.
+
+### Ramas principales
+
+| Rama | Proposito |
+|------|-----------|
+| `main` | Produccion. Solo recibe merges de `release` o `hotfix`. |
+| `dev` | Integracion. Rama base para `feature` y fuente para `release`. |
+
+### Ramas de soporte
+
+| Rama | Nace de | Se mergea a | Convencion de nombre |
+|------|---------|-------------|----------------------|
+| **Feature** | `dev` | `dev` | `feat/<nombre-descripcion>` |
+| **Fix** | `dev` | `dev` | `fix/<nombre-descripcion>` |
+| **Hotfix** | `main` | `main` y `develop` | `hotfix/<nombre-descripcion>` |
+
+### Flujo basico
+
+```bash
+# 1. Crear una rama feature desde develop
+git checkout dev
+git checkout -b feat/nombre-de-la-feature
+```
+
+
 ## Requisitos
 
 - Docker + Docker Compose
@@ -52,9 +83,10 @@ Esto levanta tres contenedores:
 | `admin` | ADMIN | `password` |
 | `capturista` | CAPTURISTA | `password` |
 
->[!INFO]
->Las contraseñas se configuran via variables de entorno en `.env`.
+> [!NOTE]
+> Las contraseñas se configuran via variables de entorno en `.env`.
 
+> [!TIP]
 > Todo usuario nuevo (incluyendo admin y capturista) al iniciar sesion por primera vez debera cambiar su contraseña. El campo `mustChangePassword` se inicializa en `true` y la interfaz redirige automaticamente al formulario de cambio de contraseña.
 
 ### Comandos utiles
@@ -88,7 +120,8 @@ Docker Compose define dos volumenes:
 - **postgres_data**: datos de la base de datos (sobrevive a `docker compose down`)
 - **constancias_data**: PDFs generados, montado en `/app/constancias` del backend
 
-Para acceder a los PDFs desde el host, se puede cambiar el volumen por un bind mount:
+> [!IMPORTANT]
+> Para acceder a los PDFs desde el host, cambia el volumen por un bind mount:
 
 ```yaml
 volumes:
@@ -136,14 +169,15 @@ Configuracion via `.env` (usado por Docker Compose automaticamente):
 | `USER_DB` | Usuario BD | `postgres` |
 | `PASS_DB` | Password BD | `postgres` |
 | `SERVER_PORT` | Puerto del backend | `8082` |
-| `JWT_SECRET` | Secreto para firmar tokens JWT | —(Generar token con el comando: openssl rand -base64 64) |
+| `JWT_SECRET` | Secreto para firmar tokens JWT | —(Generar con: `openssl rand -base64 64`) |
 | `JWT_EXPIRATION` | Duracion del token en segundos | `864000` |
 | `PDF_PATH_SAVE` | Directorio para PDFs generados | `./constancias` |
 | `MAX_FILE` | Tamano maximo de subida | `10MB` |
 | `ADMIN_PASSWORD` | Password del usuario admin | `admin` |
 | `CAPTURISTA_PASSWORD` | Password del usuario capturista | `capturista` |
 
-> **Importante**: en produccion cambia `ADMIN_PASSWORD`, `CAPTURISTA_PASSWORD` y `JWT_SECRET`.
+> [!CAUTION]
+> En produccion cambia `ADMIN_PASSWORD`, `CAPTURISTA_PASSWORD` y `JWT_SECRET`.
 
 ## Modelo de datos
 
@@ -196,7 +230,9 @@ Content-Type: multipart/form-data
 | Juan | Perez | Garcia | juan@mail.com | 5551234567 | Lic. | PARTICIPANTE |
 | Maria | Lopez | | maria@mail.com | 5559876543 | Dra. | PONENTE |
 
-- **Nombre** y **PrimerApellido**: obligatorios. Sin ellos la fila se omite.
+> [!WARNING]
+> Las columnas **Nombre** y **PrimerApellido** son obligatorias. Sin ellas la fila se omite silenciosamente.
+
 - **Email**: si ya existe un receptor con ese correo, se reutiliza en lugar de crear uno nuevo.
 - **Rol**: PONENTE, PARTICIPANTE, ORGANIZADOR o RECONOCIMIENTO.
 
