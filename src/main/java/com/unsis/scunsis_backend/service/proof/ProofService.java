@@ -4,6 +4,7 @@ import com.lowagie.text.Document;
 import com.lowagie.text.Image;
 import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.PdfWriter;
+import com.unsis.scunsis_backend.constants.Constant;
 import com.unsis.scunsis_backend.dto.request.proof.CanvasPdfRequest;
 import com.unsis.scunsis_backend.dto.request.proof.ProofRequest;
 import com.unsis.scunsis_backend.dto.response.proof.CanvasPdfResponse;
@@ -64,11 +65,6 @@ public class ProofService {
     private final IEventRepository eventRepository;
     private final ExcelService excelService;
 
-    private static final String PROOF_NOT_FOUND = "Constancia no encontrada con folio: ";
-    private static final String SENDER_NOT_FOUND = "Emisor no encontrado";
-    private static final String ACTIVITY_NOT_FOUND = "Actividad no encontrada";
-    private static final String EVENT_NOT_FOUND = "Evento no encontrado";
-
     @Value("${app.pdf.generated-dir}")
     private String generatedDir;
 
@@ -78,14 +74,14 @@ public class ProofService {
 
     public ProofResponse getById(String folio) {
         Proof proof = proofRepository.findById(folio)
-                .orElseThrow(() -> new AppException(PROOF_NOT_FOUND + folio, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(Constant.PROOF_NOT_FOUND + folio, HttpStatus.NOT_FOUND));
         return proofMapper.toDto(proof);
     }
 
     @Transactional
     public void deleteById(String folio) {
         Proof proof = proofRepository.findById(folio)
-                .orElseThrow(() -> new AppException(PROOF_NOT_FOUND + folio, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(Constant.PROOF_NOT_FOUND + folio, HttpStatus.NOT_FOUND));
 
         proofFileRepository.findByFolio(folio).ifPresent(pf -> {
             try {
@@ -119,13 +115,13 @@ public class ProofService {
         }
 
         Sender sender = senderRepository.findById(request.getSenderId())
-                .orElseThrow(() -> new AppException(SENDER_NOT_FOUND, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(Constant.SENDER_NOT_FOUND, HttpStatus.NOT_FOUND));
         Receiver receiver = receiverRepository.findById(request.getReceiverId())
                 .orElseThrow(() -> new AppException("Receptor no encontrado", HttpStatus.NOT_FOUND));
         Activity activity = activityRepository.findById(request.getActivityId())
-                .orElseThrow(() -> new AppException(ACTIVITY_NOT_FOUND, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(Constant.ACTIVITY_NOT_FOUND, HttpStatus.NOT_FOUND));
         Event event = eventRepository.findById(request.getEventId())
-                .orElseThrow(() -> new AppException(EVENT_NOT_FOUND, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(Constant.EVENT_NOT_FOUND, HttpStatus.NOT_FOUND));
 
         EParticipationRole role = request.getRole();
         int currentYear = LocalDate.now(ZoneId.systemDefault()).getYear();
@@ -155,11 +151,11 @@ public class ProofService {
             List<EParticipationRole> roles
     ) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new AppException(EVENT_NOT_FOUND, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(Constant.EVENT_NOT_FOUND, HttpStatus.NOT_FOUND));
         Activity activity = activityRepository.findById(activityId)
-                .orElseThrow(() -> new AppException(ACTIVITY_NOT_FOUND, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(Constant.ACTIVITY_NOT_FOUND, HttpStatus.NOT_FOUND));
         Sender sender = senderRepository.findById(senderId)
-                .orElseThrow(() -> new AppException(SENDER_NOT_FOUND, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(Constant.SENDER_NOT_FOUND, HttpStatus.NOT_FOUND));
 
         int currentYear = LocalDate.now(ZoneId.systemDefault()).getYear();
 
@@ -293,7 +289,7 @@ public class ProofService {
         }
 
         Proof proof = proofRepository.findById(folio)
-                .orElseThrow(() -> new AppException(PROOF_NOT_FOUND + folio, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(Constant.PROOF_NOT_FOUND + folio, HttpStatus.NOT_FOUND));
         return pdfGenerationService.generateCertificate(proof);
     }
 
@@ -368,11 +364,11 @@ public class ProofService {
             return new ProofEntities(null, null, null, null, 0);
         }
         Sender sender = senderRepository.findById(request.getSenderId())
-                .orElseThrow(() -> new AppException(SENDER_NOT_FOUND, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(Constant.SENDER_NOT_FOUND, HttpStatus.NOT_FOUND));
         Activity activity = activityRepository.findById(request.getActivityId())
-                .orElseThrow(() -> new AppException(ACTIVITY_NOT_FOUND, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(Constant.ACTIVITY_NOT_FOUND, HttpStatus.NOT_FOUND));
         Event event = eventRepository.findById(request.getEventId())
-                .orElseThrow(() -> new AppException(EVENT_NOT_FOUND, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AppException(Constant.EVENT_NOT_FOUND, HttpStatus.NOT_FOUND));
         EParticipationRole role = EParticipationRole.valueOf(request.getRole().trim().toUpperCase());
         long roleCountBase = proofRepository.countByRoleAndYear(role, currentYear);
         return new ProofEntities(sender, activity, event, role, roleCountBase);

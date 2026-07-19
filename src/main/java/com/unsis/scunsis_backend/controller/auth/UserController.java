@@ -1,5 +1,6 @@
 package com.unsis.scunsis_backend.controller.auth;
 
+import com.unsis.scunsis_backend.constants.Constant;
 import com.unsis.scunsis_backend.dto.request.auth.UserRequest;
 import com.unsis.scunsis_backend.dto.response.auth.UserResponse;
 import com.unsis.scunsis_backend.service.auth.UserService;
@@ -19,7 +20,6 @@ public class UserController {
 
     private final UserService userService;
     
-    private static final String ERROR = "error";
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -42,7 +42,7 @@ public class UserController {
             UserResponse response = userService.create(request);
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(ERROR, e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of(Constant.ERROR, e.getMessage()));
         }
     }
 
@@ -54,7 +54,7 @@ public class UserController {
             UserResponse response = userService.update(id, request, authentication.getName());
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(ERROR, e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of(Constant.ERROR, e.getMessage()));
         }
     }
 
@@ -65,7 +65,7 @@ public class UserController {
             userService.deleteById(id, authentication.getName());
             return ResponseEntity.ok(Map.of("success", true));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(ERROR, e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of(Constant.ERROR, e.getMessage()));
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.unsis.scunsis_backend.controller.auth;
 
+import com.unsis.scunsis_backend.constants.Constant;
 import com.unsis.scunsis_backend.model.auth.User;
 import com.unsis.scunsis_backend.repository.auth.IUserRepository;
 import com.unsis.scunsis_backend.security.JwtUtil;
@@ -22,9 +23,6 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
-    private static final String SUCCESS = "success";
-    private static final String MESSAGE = "message";
-
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
         String username = credentials.getOrDefault("username", "");
@@ -33,16 +31,16 @@ public class AuthController {
         User user = userRepository.findByUsername(username).orElse(null);
         if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
             return ResponseEntity.status(401).body(Map.of(
-                    SUCCESS, false,
-                    MESSAGE, "Credenciales invalidas"
+                    Constant.SUCCESS, false,
+                    Constant.MESSAGE, "Credenciales invalidas"
             ));
         }
 
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
 
         return ResponseEntity.ok(Map.of(
-                SUCCESS, true,
-                MESSAGE, "Inicio de sesion exitoso",
+                Constant.SUCCESS, true,
+                Constant.MESSAGE, "Inicio de sesion exitoso",
                 "token", token,
                 "username", user.getUsername(),
                 "role", user.getRole().name(),
@@ -56,29 +54,29 @@ public class AuthController {
         String newPassword = body.getOrDefault("newPassword", "");
         if (newPassword.isBlank()) {
             return ResponseEntity.badRequest().body(Map.of(
-                    SUCCESS, false,
-                    MESSAGE, "La nueva contraseña es requerida"
+                    Constant.SUCCESS, false,
+                    Constant.MESSAGE, "La nueva contraseña es requerida"
             ));
         }
         if (newPassword.length() < 4) {
             return ResponseEntity.badRequest().body(Map.of(
-                    SUCCESS, false,
-                    MESSAGE, "La contraseña debe tener al menos 4 caracteres"
+                    Constant.SUCCESS, false,
+                    Constant.MESSAGE, "La contraseña debe tener al menos 4 caracteres"
             ));
         }
         String username = authentication.getName();
         User user = userRepository.findByUsername(username).orElse(null);
         if (user == null) {
             return ResponseEntity.status(401).body(Map.of(
-                    SUCCESS, false,
-                    MESSAGE, "Usuario no encontrado"
+                    Constant.SUCCESS, false,
+                    Constant.MESSAGE, "Usuario no encontrado"
             ));
         }
         userService.changePassword(user.getId(), newPassword);
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
         return ResponseEntity.ok(Map.of(
-                SUCCESS, true,
-                MESSAGE, "Contraseña actualizada exitosamente",
+                Constant.SUCCESS, true,
+                Constant.MESSAGE, "Contraseña actualizada exitosamente",
                 "token", token
         ));
     }
