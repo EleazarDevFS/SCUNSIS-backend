@@ -37,8 +37,9 @@ out/
 .vscode/
 
 ### scripts db ###
+src/main/resources/data.sql
 *.sql
-*src/main/resources/data.sql
+!src/main/resources/db/migration/
 
 *src/main/resources/static/
 

@@ -10,9 +10,21 @@ Sistema backend para la gestion de constancias academicas en eventos universitar
 - PostgreSQL
 - Apache POI (lectura de Excel)
 - OpenPDF (generacion de PDF)
+- Flyway (migraciones de base de datos)
 - SpringDoc OpenAPI (Swagger UI)
 - Docker (contenedores)
 - Docker-compose (orquestacion)
+
+## Migraciones de base de datos (Flyway)
+
+El esquema de base de datos se gestiona con **Flyway**. Las migraciones estan en `src/main/resources/db/migration/`.
+
+- **Nuevos cambios**: crear un archivo `V{version}__{descripcion}.sql` en ese directorio
+- **Baseline**: si ya tienes una base de datos existente, Flyway la baselines automaticamente gracias a `spring.flyway.baseline-on-migrate=true`
+- **Seed data**: los datos iniciales (usuarios, emisores, receptores, eventos, actividades) se insertan via `DataInitializer.java` (un `CommandLineRunner`) para que las contraseñas se tomen de variables de entorno. Si necesitas datos fijos, puedes crear una migracion V2.
+
+> [!IMPORTANT]
+> `spring.jpa.hibernate.ddl-auto=none` — Flyway es el unico responsable del esquema. No uses `ddl-auto=update`.
 
 ## Flujo de trabajo (GitFlow)
 
